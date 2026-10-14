@@ -1,0 +1,2167 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>نظام إدارة المزرعة | الإنتاج والمبيعات والمصاريف</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Cairo -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Cairo', sans-serif; }
+    @media print {
+      body { background-color: #ffffff !important; }
+      .no-print { display: none !important; }
+      .print-modal {
+        position: static !important;
+        background: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        box-shadow: none !important;
+      }
+      .print-card {
+        border: none !important;
+        box-shadow: none !important;
+        max-width: 100% !important;
+        width: 100% !important;
+      }
+      @page { margin: 12mm; }
+    }
+  </style>
+</head>
+<body class="bg-stone-100 text-stone-800 min-h-screen">
+
+  <!-- LOGIN SCREEN -->
+  <div id="login-screen" class="fixed inset-0 z-50 bg-stone-900 flex items-center justify-center p-4">
+    <!-- Background Gradient -->
+    <div class="absolute inset-0 bg-gradient-to-br from-emerald-950 via-stone-900 to-emerald-900 opacity-90"></div>
+    <div class="relative max-w-md w-full bg-white/95 backdrop-blur-md rounded-3xl p-6 sm:p-8 shadow-2xl border border-white/20">
+      
+      <!-- Brand Logo & Title -->
+      <div class="text-center mb-6">
+        <div class="w-16 h-16 rounded-3xl bg-emerald-700 text-white flex items-center justify-center text-3xl mx-auto shadow-lg shadow-emerald-900/30 mb-3">
+          🌾
+        </div>
+        <h2 class="text-2xl font-black text-stone-900 tracking-tight">نظام إدارة المزرعة</h2>
+        <p class="text-xs text-stone-500 font-semibold mt-1">سجل الدخول لحسابك للوصول إلى العمليات والمحفظة</p>
+      </div>
+
+      <!-- Quick Select User Pill -->
+      <div class="mb-5">
+        <label class="block text-xs font-bold text-stone-600 mb-2 text-center">اختر حسابك للدخول السريع:</label>
+        <div class="grid grid-cols-3 gap-2">
+          <button type="button" onclick="selectLoginUser('محمد', '123')" class="p-2.5 rounded-2xl border border-stone-200 hover:border-emerald-500 hover:bg-emerald-50 text-center transition cursor-pointer">
+            <span class="text-xl block mb-1">👤</span>
+            <span class="text-xs font-black text-stone-800 block">محمد</span>
+          </button>
+          <button type="button" onclick="selectLoginUser('علي', '123')" class="p-2.5 rounded-2xl border border-stone-200 hover:border-emerald-500 hover:bg-emerald-50 text-center transition cursor-pointer">
+            <span class="text-xl block mb-1">👤</span>
+            <span class="text-xs font-black text-stone-800 block">علي</span>
+          </button>
+          <button type="button" onclick="selectLoginUser('حسين', '123')" class="p-2.5 rounded-2xl border border-stone-200 hover:border-emerald-500 hover:bg-emerald-50 text-center transition cursor-pointer">
+            <span class="text-xl block mb-1">👤</span>
+            <span class="text-xs font-black text-stone-800 block">حسين</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Login Form -->
+      <form id="login-form" onsubmit="handleLogin(event)" class="space-y-4">
+        <div>
+          <label class="block text-xs font-bold text-stone-700 mb-1">اسم المستخدم</label>
+          <input type="text" id="login-username" value="محمد" placeholder="اسم المستخدم (محمد، علي، حسين)" class="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-2.5 text-xs font-bold text-stone-900 focus:ring-2 focus:ring-emerald-600 outline-hidden" required>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-stone-700 mb-1">كلمة المرور</label>
+          <input type="password" id="login-password" value="123" placeholder="كلمة المرور (123)" class="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-2.5 text-xs font-mono font-bold text-stone-900 focus:ring-2 focus:ring-emerald-600 outline-hidden" required>
+        </div>
+
+        <div id="login-error-msg" class="hidden bg-rose-50 border border-rose-200 text-rose-800 p-2.5 rounded-xl text-xs font-bold text-center"></div>
+
+        <button type="submit" id="login-submit-btn" class="w-full bg-emerald-700 hover:bg-emerald-600 text-white font-black py-3 rounded-xl text-sm shadow-lg shadow-emerald-800/20 transition cursor-pointer flex items-center justify-center gap-2">
+          <span>دخول للنظام</span>
+          <svg class="w-4 h-4 rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+        </button>
+      </form>
+
+      <div class="mt-4 pt-3 border-t border-stone-100 text-center">
+        <p class="text-[11px] text-stone-400">كلمة المرور الافتراضية لجميع الحسابات هي: <strong class="text-emerald-700 font-mono">123</strong></p>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Top Navigation Bar -->
+  <header id="app-header" class="hidden bg-emerald-900 text-white shadow-lg sticky top-0 z-30 no-print">
+    <div class="max-w-7xl mx-auto px-4 py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-2xl bg-emerald-700 flex items-center justify-center text-xl shadow-inner">
+          🌾
+        </div>
+        <div>
+          <h1 class="text-lg font-black tracking-wide">نظام إدارة المزرعة</h1>
+          <p class="text-[11px] text-emerald-300 font-semibold flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+            متصل بسحابة Google Firebase Firestore
+          </p>
+        </div>
+      </div>
+
+      <div class="flex flex-wrap items-center gap-2.5">
+        <!-- Logged-in User Profile Badge -->
+        <div class="flex items-center gap-2.5 bg-emerald-800/80 px-3 py-1.5 rounded-xl border border-emerald-700/60 text-xs">
+          <span class="w-7 h-7 rounded-lg bg-emerald-700 flex items-center justify-center text-sm shadow-inner">👤</span>
+          <div>
+            <span id="current-user-name" class="font-black text-white block leading-tight">محمد</span>
+            <span id="current-user-balance" class="text-[10px] text-emerald-300 font-mono font-bold">الرصيد: 0 ريال</span>
+          </div>
+          <div id="header-pending-badge" onclick="switchTab('wallets')" class="hidden bg-amber-400 text-amber-950 font-black px-2 py-0.5 rounded-full text-[10px] animate-bounce cursor-pointer flex items-center gap-1 shadow-xs" title="لديك طلب قبض عهدة جديد">
+            <span>🔔</span>
+            <span id="header-pending-count">0</span>
+            <span>قبض</span>
+          </div>
+          <button onclick="logout()" class="text-emerald-300 hover:text-rose-300 hover:bg-emerald-950/40 p-1.5 rounded-lg transition cursor-pointer mr-1" title="تسجيل الخروج">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+          </button>
+        </div>
+
+        <button onclick="openSaleModal()" class="flex items-center gap-1.5 bg-blue-500 hover:bg-blue-400 text-white px-3 py-1.5 rounded-xl font-bold text-xs shadow-md transition cursor-pointer">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+          + بيع
+        </button>
+        <button onclick="openHarvestModal()" class="flex items-center gap-1.5 bg-emerald-500 hover:bg-emerald-400 text-emerald-950 px-3 py-1.5 rounded-xl font-bold text-xs shadow-md transition cursor-pointer">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+          + حصاد
+        </button>
+        <button onclick="openExpenseModal()" class="flex items-center gap-1.5 bg-amber-500 hover:bg-amber-400 text-amber-950 px-3 py-1.5 rounded-xl font-bold text-xs shadow-md transition cursor-pointer">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          + مصروف
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main id="app-main" class="hidden max-w-7xl mx-auto p-4 md:p-6 space-y-6 no-print">
+
+    <!-- KPI Cards Summary -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div class="bg-white p-4 rounded-2xl border border-stone-200/80 shadow-xs">
+        <span class="text-xs font-bold text-stone-500 block mb-1">إجمالي المبيعات (الشهر)</span>
+        <div class="flex items-baseline gap-2">
+          <span id="total-sales-amount" class="text-2xl font-black text-blue-700 font-mono">0</span>
+          <span class="text-xs text-stone-500 font-semibold">ريال</span>
+        </div>
+      </div>
+
+      <div class="bg-white p-4 rounded-2xl border border-stone-200/80 shadow-xs">
+        <span class="text-xs font-bold text-stone-500 block mb-1">إجمالي المصاريف (الشهر)</span>
+        <div class="flex items-baseline gap-2">
+          <span id="total-expenses-amount" class="text-2xl font-black text-amber-700 font-mono">0</span>
+          <span class="text-xs text-stone-500 font-semibold">ريال</span>
+        </div>
+      </div>
+
+      <div class="bg-white p-4 rounded-2xl border border-stone-200/80 shadow-xs">
+        <span class="text-xs font-bold text-stone-500 block mb-1">الحصاد والإنتاج</span>
+        <div class="flex items-baseline gap-2">
+          <span id="total-harvest-count" class="text-2xl font-black text-emerald-800 font-mono">0</span>
+          <span class="text-xs text-emerald-600 font-semibold">عملية</span>
+        </div>
+      </div>
+
+      <div class="bg-emerald-50 p-4 rounded-2xl border border-emerald-200 shadow-xs">
+        <span class="text-xs font-bold text-emerald-800 block mb-1">الشهر المحاسبي</span>
+        <div class="flex items-baseline gap-2">
+          <span id="current-period-text" class="text-xl font-black text-emerald-950 font-mono">2026-10</span>
+          <span class="text-xs text-emerald-700 font-semibold">تزامن حي</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <div class="flex border-b border-stone-200 gap-4 text-sm font-bold overflow-x-auto">
+      <button id="tab-btn-crops" onclick="switchTab('crops')" class="pb-3 text-emerald-800 border-b-2 border-emerald-700 whitespace-nowrap transition cursor-pointer">
+        🌿 رصيد المخزون للمحاصيل
+      </button>
+      <button id="tab-btn-sales" onclick="switchTab('sales')" class="pb-3 text-stone-400 hover:text-stone-700 whitespace-nowrap transition cursor-pointer">
+        🛒 المبيعات وفواتير البيع
+      </button>
+      <button id="tab-btn-expenses" onclick="switchTab('expenses')" class="pb-3 text-stone-400 hover:text-stone-700 whitespace-nowrap transition cursor-pointer">
+        💰 المصاريف والمدخلات
+      </button>
+      <button id="tab-btn-logs" onclick="switchTab('logs')" class="pb-3 text-stone-400 hover:text-stone-700 whitespace-nowrap transition cursor-pointer">
+        📋 سجل الحصاد والقطاف اليومي
+      </button>
+      <button id="tab-btn-reports" onclick="switchTab('reports')" class="pb-3 text-stone-400 hover:text-stone-700 whitespace-nowrap transition cursor-pointer">
+        📊 الأرباح والخسائر والتقرير الشهري
+      </button>
+      <button id="tab-btn-wallets" onclick="switchTab('wallets')" class="pb-3 text-stone-400 hover:text-stone-700 whitespace-nowrap transition cursor-pointer relative">
+        👛 المحافظ والعهد النقدية
+        <span id="tab-wallets-badge" class="hidden absolute -top-1 -left-2 bg-amber-500 text-amber-950 rounded-full w-4 h-4 text-[10px] flex items-center justify-center font-black animate-pulse">!</span>
+      </button>
+    </div>
+
+    <!-- TAB 1: CROPS GRID -->
+    <section id="tab-crops" class="space-y-4">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <input type="text" id="crop-search" oninput="filterCrops()" placeholder="بحث في الأصناف (مثال: طماطم، رطب، باميا، دجاج...)" class="w-full sm:w-80 bg-white border border-stone-200 rounded-xl px-4 py-2 text-xs focus:ring-2 focus:ring-emerald-500 outline-hidden">
+        <span id="crops-filter-count" class="text-xs text-stone-500 font-medium">عرض الأصناف</span>
+      </div>
+
+      <div id="crops-container" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3.5">
+        <!-- Rendered by JS -->
+      </div>
+    </section>
+
+    <!-- TAB 2: SALES INVOICES -->
+    <section id="tab-sales" class="hidden space-y-4">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-3.5 rounded-2xl border border-stone-200 shadow-xs">
+        <div class="flex items-center gap-2">
+          <span class="text-xs font-bold text-stone-600">حالة السداد:</span>
+          <select id="sales-filter-status" onchange="loadSales()" class="bg-stone-50 border border-stone-200 rounded-xl px-3 py-1.5 text-xs outline-hidden">
+            <option value="">جميع الحالات</option>
+            <option value="PAID">مدفوعة بالكامل</option>
+            <option value="PARTIAL">مدفوعة جزئياً</option>
+            <option value="UNPAID">آجل (غير مدفوعة)</option>
+          </select>
+        </div>
+        <button onclick="openSaleModal()" class="bg-blue-600 hover:bg-blue-500 text-white px-3.5 py-1.5 rounded-xl font-bold text-xs shadow-xs transition">
+          + إنشاء فاتورة بيع جديدة
+        </button>
+      </div>
+
+      <div class="bg-white rounded-2xl border border-stone-200 shadow-xs overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-right text-xs">
+            <thead>
+              <tr class="bg-stone-50 text-stone-600 font-bold border-b border-stone-200">
+                <th class="p-3">رقم الفاتورة</th>
+                <th class="p-3">التاريخ</th>
+                <th class="p-3">العميل / المشتري</th>
+                <th class="p-3 text-center">عدد الأصناف</th>
+                <th class="p-3 text-center">طريقة الدفع</th>
+                <th class="p-3 text-left">الإجمالي (ريال)</th>
+                <th class="p-3 text-center">الحالة</th>
+                <th class="p-3 text-center w-24">إجراءات</th>
+              </tr>
+            </thead>
+            <tbody id="sales-table-body" class="divide-y divide-stone-100">
+              <!-- Rendered by JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 3: EXPENSES SECTION -->
+    <section id="tab-expenses" class="hidden space-y-6">
+      
+      <!-- Top Action Bar -->
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-stone-200 shadow-xs">
+        <div>
+          <h3 class="font-black text-stone-900 text-sm">أصناف ومصاريف المزرعة والمدخلات</h3>
+          <p class="text-[11px] text-stone-400 mt-0.5">يمكنك الضغط على أي صنف أدناه لتسجيل صرف مباشر، أو الضغط على زر سند صرف جديد</p>
+        </div>
+        <button onclick="openExpenseModal()" class="bg-amber-600 hover:bg-amber-500 text-white px-4 py-2 rounded-xl font-bold text-xs shadow-xs transition flex items-center gap-1.5 cursor-pointer">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+          + تسجيل سند صرف جديد
+        </button>
+      </div>
+
+      <!-- Expense Categories Catalog Grid -->
+      <div class="space-y-3">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <span class="text-base">🏷️</span>
+            <h4 class="font-bold text-stone-800 text-xs">قائمة بنود وأصناف المصروفات المعتمدة (اضغط لتسجيل صرف فوري)</h4>
+          </div>
+          <span id="expense-cats-count" class="text-[11px] text-stone-400 font-bold"></span>
+        </div>
+        <div id="expense-cats-container" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2.5">
+          <!-- Rendered by JS -->
+        </div>
+      </div>
+
+      <!-- Ledger of Recorded Expenses -->
+      <div class="space-y-3">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-stone-100/70 p-3 rounded-2xl border border-stone-200">
+          <div class="flex items-center gap-2">
+            <span class="text-xs font-bold text-stone-700">تصفية السجل حسب الصنف:</span>
+            <select id="expense-filter-cat" onchange="loadExpenses()" class="bg-white border border-stone-200 rounded-xl px-3 py-1.5 text-xs outline-hidden font-bold">
+              <option value="">جميع تصنيفات المصاريف</option>
+            </select>
+          </div>
+          <button onclick="loadExpenses()" class="text-xs font-bold text-amber-800 hover:underline cursor-pointer">تحديث السجل</button>
+        </div>
+
+        <div class="bg-white rounded-2xl border border-stone-200 shadow-xs overflow-hidden">
+          <div class="overflow-x-auto">
+            <table class="w-full text-right text-xs">
+              <thead>
+                <tr class="bg-stone-50 text-stone-600 font-bold border-b border-stone-200">
+                  <th class="p-3">التاريخ</th>
+                  <th class="p-3">صنف المصروف</th>
+                  <th class="p-3">البيان والتفاصيل</th>
+                  <th class="p-3">المحصول المستفيد</th>
+                  <th class="p-3 text-center">طريقة الدفع</th>
+                  <th class="p-3 text-left">المبلغ (ريال)</th>
+                  <th class="p-3">المدفوع له</th>
+                  <th class="p-3 text-center w-16">إجراء</th>
+                </tr>
+              </thead>
+              <tbody id="expenses-table-body" class="divide-y divide-stone-100">
+                <!-- Rendered by JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 4: HARVEST LOGS TABLE -->
+    <section id="tab-logs" class="hidden space-y-4">
+      <div class="bg-white rounded-2xl border border-stone-200 shadow-xs overflow-hidden">
+        <div class="p-4 border-b border-stone-100 flex items-center justify-between">
+          <h3 class="font-black text-stone-800 text-sm">تفاصيل عمليات الحصاد السحابية</h3>
+          <button onclick="loadHarvestLogs()" class="text-xs font-bold text-emerald-700 hover:underline">تحديث السجل</button>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-right text-xs">
+            <thead>
+              <tr class="bg-stone-50 text-stone-600 font-bold border-b border-stone-200">
+                <th class="p-3">التاريخ</th>
+                <th class="p-3">المحصول</th>
+                <th class="p-3 text-center">الكمية المحصودة</th>
+                <th class="p-3">الموقع / الحقل</th>
+                <th class="p-3">الدرجة</th>
+                <th class="p-3">ملاحظات</th>
+                <th class="p-3 text-center w-16">إجراء</th>
+              </tr>
+            </thead>
+            <tbody id="logs-table-body" class="divide-y divide-stone-100">
+              <!-- Rendered by JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 5: MONTHLY P&L & CROP ECONOMICS REPORT -->
+    <section id="tab-reports" class="hidden space-y-4">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-stone-200 shadow-xs">
+        <div class="flex items-center gap-2">
+          <span class="text-xs font-bold text-stone-700">الشهر المحاسبي:</span>
+          <input type="month" id="report-period-input" onchange="loadMonthlyReport()" class="bg-stone-50 border border-stone-200 rounded-xl px-3 py-1.5 text-xs font-bold font-mono outline-hidden">
+        </div>
+        <div class="flex items-center gap-2">
+          <button onclick="window.print()" class="bg-stone-800 hover:bg-stone-700 text-white px-4 py-1.5 rounded-xl font-bold text-xs flex items-center gap-1.5 transition cursor-pointer">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+            طباعة التقرير / حفظ PDF
+          </button>
+        </div>
+      </div>
+
+      <!-- Financial Statement Cards -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="bg-blue-50 border border-blue-200 p-4 rounded-2xl">
+          <span class="text-xs font-bold text-blue-800 block mb-1">1. إجمالي المبيعات (الإيرادات)</span>
+          <span id="rep-sales" class="text-2xl font-black font-mono text-blue-950">0.00</span>
+          <span class="text-xs text-blue-700 mr-1">ريال</span>
+        </div>
+
+        <div class="bg-stone-50 border border-stone-200 p-4 rounded-2xl">
+          <span class="text-xs font-bold text-stone-600 block mb-1">2. إجمالي المصاريف والتشغيل</span>
+          <span id="rep-expenses" class="text-2xl font-black font-mono text-stone-900">0.00</span>
+          <span class="text-xs text-stone-500 mr-1">ريال</span>
+        </div>
+
+        <div id="rep-profit-card" class="p-4 rounded-2xl border bg-emerald-50 border-emerald-200">
+          <span id="rep-profit-label" class="text-xs font-bold block mb-1 text-emerald-800">3. صافي الربح الشهري</span>
+          <span id="rep-profit" class="text-2xl font-black font-mono text-emerald-950">0.00</span>
+          <span class="text-xs mr-1 text-emerald-700">ريال</span>
+        </div>
+
+        <div class="bg-white border border-stone-200 p-4 rounded-2xl shadow-xs">
+          <span class="text-xs font-bold text-stone-500 block mb-1">4. هامش الربحية الإجمالي</span>
+          <span id="rep-margin" class="text-2xl font-black font-mono text-emerald-700">0%</span>
+        </div>
+      </div>
+
+      <!-- Crop Economics Breakdown Table -->
+      <div class="bg-white rounded-2xl border border-stone-200 shadow-xs overflow-hidden">
+        <div class="p-4 border-b border-stone-100 flex items-center justify-between">
+          <div>
+            <h3 class="font-black text-stone-900 text-sm">تحليل تكاليف وربحية كل محصول على حدة (Crop Economics)</h3>
+            <p class="text-[11px] text-stone-400 mt-0.5">يوضح كم كلف إنتاج الوحدة (ريال/كرتون أو صندوق) وكم بيع وصافي ربح أو خسارة كل محصول</p>
+          </div>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-right text-xs">
+            <thead>
+              <tr class="bg-stone-50 text-stone-600 font-bold border-b border-stone-200">
+                <th class="p-3">المحصول</th>
+                <th class="p-3 text-center">كمية الحصاد</th>
+                <th class="p-3 text-center">تكلفة الوحدة المنتجة</th>
+                <th class="p-3 text-center">الكمية المباعة</th>
+                <th class="p-3 text-center">متوسط سعر البيع</th>
+                <th class="p-3 text-left">إجمالي التكاليف</th>
+                <th class="p-3 text-left">إجمالي الإيرادات</th>
+                <th class="p-3 text-center">صافي الربح / الخسارة</th>
+                <th class="p-3 text-center">المخزون المتبقي</th>
+              </tr>
+            </thead>
+            <tbody id="crop-economics-body" class="divide-y divide-stone-100">
+              <!-- Rendered by JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 6: WALLETS & CASH CUSTODY -->
+    <section id="tab-wallets" class="hidden space-y-6">
+      
+      <!-- Top Overview & Actions -->
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 rounded-2xl border border-stone-200 shadow-xs">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="text-2xl">👛</span>
+            <h3 class="font-black text-stone-900 text-base">إدارة العهد والمحافظ النقدية (الكاش)</h3>
+          </div>
+          <p class="text-xs text-stone-500 mt-1">تتبع الكاش عند من (محمد، علي، حسين)، وتسليم العهد مع طلبات الاستلام والقبض الفورية</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <button onclick="openDepositModal()" class="bg-stone-800 hover:bg-stone-700 text-white px-3.5 py-2 rounded-xl font-bold text-xs shadow-xs transition flex items-center gap-1.5 cursor-pointer">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+            + تغذية عهدة / إيداع كاش
+          </button>
+          <button onclick="openTransferModal()" class="bg-emerald-700 hover:bg-emerald-600 text-white px-3.5 py-2 rounded-xl font-bold text-xs shadow-xs transition flex items-center gap-1.5 cursor-pointer">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
+            💸 تسليم عهدة / تحويل كاش
+          </button>
+        </div>
+      </div>
+
+      <!-- User Wallets Cards Grid -->
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4" id="wallets-cards-container">
+        <!-- Rendered by JS: Cards for Mohammed, Ali, Hussein with balance, avatar, quick transfer button -->
+      </div>
+
+      <!-- Pending Receipts Section (طلبات القبض والاستلام المعلقة) -->
+      <div class="bg-amber-50/70 border border-amber-200 rounded-2xl p-4 space-y-3">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <span class="text-lg">🔔</span>
+            <h4 class="font-black text-amber-950 text-sm">طلبات القبض والتسليم بانتظار تأكيد الاستلام</h4>
+          </div>
+          <span id="pending-transfers-count" class="text-xs bg-amber-200 text-amber-900 font-bold px-2 py-0.5 rounded-full">0 معلق</span>
+        </div>
+        <div id="pending-transfers-list" class="space-y-2">
+          <!-- Rendered by JS -->
+        </div>
+      </div>
+
+      <!-- Custody Transfers History Table -->
+      <div class="bg-white rounded-2xl border border-stone-200 shadow-xs overflow-hidden">
+        <div class="p-4 border-b border-stone-100 flex items-center justify-between">
+          <h4 class="font-black text-stone-900 text-sm">سجل حركة تسليم واستلام العهد النقدية</h4>
+          <button onclick="loadWalletsData()" class="text-xs font-bold text-emerald-700 hover:underline cursor-pointer">تحديث السجل</button>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-right text-xs">
+            <thead>
+              <tr class="bg-stone-50 text-stone-600 font-bold border-b border-stone-200">
+                <th class="p-3">رقم الطلب</th>
+                <th class="p-3">التاريخ</th>
+                <th class="p-3">المُسلِّم (من)</th>
+                <th class="p-3">المُستلِم (إلى)</th>
+                <th class="p-3 text-left">المبلغ (ريال)</th>
+                <th class="p-3">البيان والسبب</th>
+                <th class="p-3 text-center">الحالة</th>
+                <th class="p-3 text-center w-28">إجراء</th>
+              </tr>
+            </thead>
+            <tbody id="transfers-table-body" class="divide-y divide-stone-100">
+              <!-- Rendered by JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- MODAL: NEW SALE INVOICE -->
+  <div id="sale-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs hidden no-print overflow-y-auto">
+    <div class="bg-white rounded-3xl max-w-2xl w-full overflow-hidden shadow-2xl border border-stone-100 my-6">
+      <div class="bg-blue-800 text-white p-4 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <span class="text-xl">🧾</span>
+          <h3 class="font-black text-base">إصدار فاتورة بيع جديدة</h3>
+        </div>
+        <button onclick="closeSaleModal()" class="text-blue-200 hover:text-white p-1 rounded-lg cursor-pointer">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <form id="sale-form" onsubmit="submitSale(event)" class="p-5 space-y-4 max-h-[80vh] overflow-y-auto">
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-stone-50 p-3 rounded-2xl border border-stone-200">
+          <div>
+            <label class="block text-xs font-bold text-stone-700 mb-1">اسم العميل / المشتري</label>
+            <input type="text" id="sale-customer-name" value="عميل نقدي" placeholder="مثال: سوق الخضار، شركة النماء..." class="w-full bg-white border border-stone-200 rounded-xl px-3 py-1.5 text-xs font-bold focus:ring-2 focus:ring-blue-500 outline-hidden" required>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-stone-700 mb-1">رقم الهاتف</label>
+            <input type="text" id="sale-customer-phone" placeholder="05XXXXXXXX" class="w-full bg-white border border-stone-200 rounded-xl px-3 py-1.5 text-xs outline-hidden" dir="ltr">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-stone-700 mb-1">تاريخ البيع</label>
+            <input type="date" id="sale-date" class="w-full bg-white border border-stone-200 rounded-xl px-3 py-1.5 text-xs focus:ring-2 focus:ring-blue-500 outline-hidden" required>
+          </div>
+        </div>
+
+        <div>
+          <div class="flex items-center justify-between mb-1.5">
+            <span class="text-xs font-bold text-stone-800">الأصناف المباعة (يتم خصمها من المخزون فورياً)</span>
+            <button type="button" onclick="addSaleItemRow()" class="text-blue-700 hover:text-blue-800 text-xs font-bold bg-blue-50 hover:bg-blue-100 px-2.5 py-1 rounded-lg transition">
+              + إضافة صنف
+            </button>
+          </div>
+
+          <div id="sale-items-rows" class="space-y-2">
+            <!-- Row Template generated by JS -->
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+          <div class="bg-stone-50 p-3 rounded-2xl border border-stone-200 space-y-2">
+            <div>
+              <label class="block text-xs font-bold text-stone-700 mb-1">طريقة الدفع</label>
+              <select id="sale-payment-method" class="w-full bg-white border border-stone-200 rounded-xl px-3 py-1.5 text-xs focus:ring-2 focus:ring-blue-500 outline-hidden">
+                <option value="cash">نقداً (كاش)</option>
+                <option value="bank">تحويل بنكي / شبكة</option>
+                <option value="credit">آجل (سداد لاحق)</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-stone-700 mb-1">المبلغ المدفوع (ريال)</label>
+              <input type="number" id="sale-paid-amount" min="0" step="any" placeholder="اتركه فارغاً للسداد الكامل" class="w-full bg-white border border-stone-200 rounded-xl px-3 py-1.5 text-xs font-bold text-stone-800 outline-hidden">
+            </div>
+          </div>
+
+          <div class="bg-stone-50 p-3 rounded-2xl border border-stone-200 space-y-1.5 text-xs">
+            <div class="flex justify-between text-stone-600">
+              <span>المجموع الفرعي:</span>
+              <span id="sale-subtotal-display" class="font-mono font-bold">0.00 ريال</span>
+            </div>
+            <div class="flex items-center justify-between gap-2">
+              <span class="text-stone-600">الخصم:</span>
+              <div class="flex items-center gap-1 w-28">
+                <input type="number" id="sale-discount" value="0" min="0" step="any" oninput="calcSaleTotals()" class="w-full bg-white border border-stone-200 rounded-lg px-2 py-0.5 text-center text-xs font-bold outline-hidden">
+                <span>ريال</span>
+              </div>
+            </div>
+            <div class="border-t border-stone-200 pt-2 flex justify-between items-center text-sm">
+              <span class="font-black text-blue-950">الإجمالي النهائي:</span>
+              <span id="sale-total-display" class="text-base font-black font-mono text-blue-800">0.00 ريال</span>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-stone-700 mb-1">ملاحظات الفاتورة</label>
+          <input type="text" id="sale-notes" placeholder="ملاحظات التسليم، رقم السيارة..." class="w-full bg-stone-50 border border-stone-200 rounded-xl px-3 py-1.5 text-xs outline-hidden">
+        </div>
+
+        <div class="flex items-center justify-end gap-2 pt-3 border-t border-stone-100">
+          <button type="button" onclick="closeSaleModal()" class="px-4 py-2 rounded-xl text-stone-500 hover:bg-stone-100 text-xs font-bold cursor-pointer">إلغاء</button>
+          <button type="submit" id="submit-sale-btn" class="bg-blue-700 hover:bg-blue-600 text-white px-5 py-2 rounded-xl text-xs font-bold shadow-md transition cursor-pointer">
+            حفظ الفاتورة وخصم المخزون
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- PRINTABLE INVOICE MODAL -->
+  <div id="invoice-preview-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-xs hidden print-modal overflow-y-auto">
+    <div class="bg-white rounded-3xl max-w-2xl w-full overflow-hidden shadow-2xl border border-stone-200 print-card my-6">
+      <!-- Top control bar (hidden in print) -->
+      <div class="bg-stone-900 text-white p-3.5 flex items-center justify-between no-print">
+        <span class="text-xs font-bold text-emerald-400">معاينة وطباعة الفاتورة</span>
+        <div class="flex items-center gap-2">
+          <button onclick="window.print()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-1.5 rounded-xl font-bold text-xs flex items-center gap-1.5 transition cursor-pointer">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+            طباعة / حفظ PDF
+          </button>
+          <button onclick="closeInvoiceModal()" class="text-stone-400 hover:text-white p-1 rounded-lg cursor-pointer">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Printable area -->
+      <div id="printable-invoice-content" class="p-6 text-stone-800 space-y-4">
+        <!-- Rendered by JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: NEW HARVEST -->
+  <div id="harvest-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs hidden no-print">
+    <div class="bg-white rounded-3xl max-w-lg w-full overflow-hidden shadow-2xl border border-stone-100">
+      <div class="bg-emerald-800 text-white p-4 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <span class="text-xl">🧺</span>
+          <h3 class="font-black text-base">تسجيل دورة حصاد جديدة</h3>
+        </div>
+        <button onclick="closeHarvestModal()" class="text-emerald-200 hover:text-white p-1 rounded-lg cursor-pointer">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <form id="harvest-form" onsubmit="submitHarvest(event)" class="p-5 space-y-4">
+        <div>
+          <label class="block text-xs font-bold text-stone-700 mb-1">المحصول أو المنتج المنتَج</label>
+          <select id="harvest-crop-select" onchange="onCropSelectChange()" class="w-full bg-stone-50 border border-stone-200 rounded-xl px-3 py-2 text-xs font-bold focus:ring-2 focus:ring-emerald-500 outline-hidden" required>
+            <!-- Loaded by JS -->
+          </select>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-stone-700 mb-1">الكمية المحصودة</label>
+            <input type="number" id="harvest-qty" min="0.1" step="any" placeholder="مثال: 50" class="w-full bg-stone-50 border border-stone-200 rounded-xl px-3 py-2 text-sm font-black text-emerald-900 focus:ring-2 focus:ring-emerald-500 outline-hidden" required>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-stone-700 mb-1">الوحدة</label>
+            <input type="text" id="harvest-unit" class="w-full bg-stone-100 border border-stone-200 rounded-xl px-3 py-2 text-xs font-bold text-stone-600 outline-hidden" readonly>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-stone-700 mb-1">تاريخ الحصاد</label>
+            <input type="date" id="harvest-date" class="w-full bg-stone-50 border border-stone-200 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-emerald-500 outline-hidden" required>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-stone-700 mb-1">الدرجة / النخب</label>
+            <select id="harvest-grade" class="w-full bg-stone-50 border border-stone-200 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-emerald-500 outline-hidden">
+              <option value="نخب أول">نخب أول (ممتاز)</option>
+              <option value="نخب ثانٍ">نخب ثانٍ</option>
+              <option value="تجاري / فرز">تجاري / فرز</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-stone-700 mb-1">الموقع (رقم البيت المحمي أو الحقل)</label>
+          <input type="text" id="harvest-location" placeholder="مثال: بيت محمي رقم 2، الحقل الشمالي..." class="w-full bg-stone-50 border border-stone-200 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-emerald-500 outline-hidden">
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-stone-700 mb-1">ملاحظات</label>
+          <input type="text" id="harvest-notes" placeholder="قطاف الصباح الباكر، جودة عالية..." class="w-full bg-stone-50 border border-stone-200 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-emerald-500 outline-hidden">
+        </div>
+
+        <div class="flex items-center justify-end gap-2 pt-3 border-t border-stone-100">
+          <button type="button" onclick="closeHarvestModal()" class="px-4 py-2 rounded-xl text-stone-500 hover:bg-stone-100 text-xs font-bold cursor-pointer">إلغاء</button>
+          <button type="submit" id="submit-btn" class="bg-emerald-700 hover:bg-emerald-600 text-white px-5 py-2 rounded-xl text-xs font-bold shadow-md transition cursor-pointer">
+            حفظ وتحديث المخزون
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: NEW EXPENSE -->
+  <div id="expense-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs hidden no-print">
+    <div class="bg-white rounded-3xl max-w-lg w-full overflow-hidden shadow-2xl border border-stone-100">
+      <div class="bg-amber-700 text-white p-4 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <span class="text-xl">💰</span>
+          <h3 class="font-black text-base">تسجيل سند صرف / مصروف</h3>
+        </div>
+        <button onclick="closeExpenseModal()" class="text-amber-200 hover:text-white p-1 rounded-lg cursor-pointer">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <form id="expense-form" onsubmit="submitExpense(event)" class="p-5 space-y-4">
+        <div>
+          <label class="block text-xs font-bold text-stone-700 mb-1">صنف المصروف</label>
+          <select id="expense-cat-select" onchange="onExpenseCatChange()" class="w-full bg-stone-50 border border-stone-200 rounded-xl px-3 py-2 text-xs font-bold focus:ring-2 focus:ring-amber-500 outline-hidden" required>
+            <!-- Loaded by JS -->
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-stone-700 mb-1">بيان وتفاصيل المصروف</label>
+          <input type="text" id="expense-title" placeholder="مثال: شراء 50 كرتون خيار، وايت ماء سعة 18 طن..." class="w-full bg-stone-50 border border-stone-200 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-amber-500 outline-hidden" required>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-stone-700 mb-1">المبلغ (ريال)</label>
+            <input type="number" id="expense-amount" min="0.1" step="any" placeholder="0.00" class="w-full bg-stone-50 border border-stone-200 rounded-xl px-3 py-2 text-sm font-black text-amber-900 focus:ring-2 focus:ring-amber-500 outline-hidden" required>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-stone-700 mb-1">تاريخ المصروف</label>
+            <input type="date" id="expense-date" class="w-full bg-stone-50 border border-stone-200 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-amber-500 outline-hidden" required>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-stone-700 mb-1">ربط بمحصول محدد (لحساب تكلفته الشهرية بدقة)</label>
+          <select id="expense-crop-select" class="w-full bg-stone-50 border border-stone-200 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-amber-500 outline-hidden">
+            <option value="">مصروف عام للمزرعة (غير مخصص لمحصول بعينه)</option>
+            <!-- Loaded by JS -->
+          </select>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-stone-700 mb-1">طريقة الدفع</label>
+            <select id="expense-payment-method" class="w-full bg-stone-50 border border-stone-200 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-amber-500 outline-hidden">
+              <option value="cash">نقداً (كاش)</option>
+              <option value="bank">تحويل بنكي / مدى</option>
+              <option value="credit">آجل</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-stone-700 mb-1">المدفوع له (اسم العامل / الورشة)</label>
+            <input type="text" id="expense-recipient" placeholder="اسم المستلم..." class="w-full bg-stone-50 border border-stone-200 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-amber-500 outline-hidden">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-stone-700 mb-1">رقم الفاتورة الورقية / السند</label>
+          <input type="text" id="expense-ref" placeholder="رقم الإيصال أو الفاتورة إن وجد..." class="w-full bg-stone-50 border border-stone-200 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-amber-500 outline-hidden">
+        </div>
+
+        <div class="flex items-center justify-end gap-2 pt-3 border-t border-stone-100">
+          <button type="button" onclick="closeExpenseModal()" class="px-4 py-2 rounded-xl text-stone-500 hover:bg-stone-100 text-xs font-bold cursor-pointer">إلغاء</button>
+          <button type="submit" id="submit-expense-btn" class="bg-amber-700 hover:bg-amber-600 text-white px-5 py-2 rounded-xl text-xs font-bold shadow-md transition cursor-pointer">
+            حفظ وترحيل المصروف
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: TRANSFER CUSTODY (تسليم عهدة / تحويل كاش) -->
+  <div id="transfer-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs hidden no-print">
+    <div class="bg-white rounded-3xl max-w-md w-full overflow-hidden shadow-2xl border border-stone-100">
+      <div class="bg-emerald-800 text-white p-4 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <span class="text-xl">💸</span>
+          <h3 class="font-black text-base">تسليم عهدة نقدية (تحويل كاش)</h3>
+        </div>
+        <button onclick="closeTransferModal()" class="text-emerald-200 hover:text-white p-1 rounded-lg cursor-pointer">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <form id="transfer-form" onsubmit="submitTransfer(event)" class="p-5 space-y-4">
+        <div class="bg-emerald-50 border border-emerald-200 p-3 rounded-2xl text-xs text-emerald-900 font-semibold leading-relaxed">
+          💡 تنبيه: سيتم إرسال "طلب قبض" إلى المستلم، ولن يتم خصم أو إضافة المبلغ للمحفظة حتى يقوم الطرف الآخر بالضغط على <strong>استلام</strong>.
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-stone-700 mb-1">المُسلِّم (صاحب الكاش الحالي)</label>
+          <select id="transfer-sender" onchange="onTransferSenderChange()" class="w-full bg-stone-50 border border-stone-200 rounded-xl px-3 py-2 text-xs font-bold focus:ring-2 focus:ring-emerald-500 outline-hidden" required>
+            <!-- Loaded by JS -->
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-stone-700 mb-1">المُستلِم (المرسل إليه العهدة)</label>
+          <select id="transfer-receiver" class="w-full bg-stone-50 border border-stone-200 rounded-xl px-3 py-2 text-xs font-bold focus:ring-2 focus:ring-emerald-500 outline-hidden" required>
+            <!-- Loaded by JS -->
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-stone-700 mb-1">المبلغ المطلوب تسليمه (ريال)</label>
+          <input type="number" id="transfer-amount" min="1" step="any" placeholder="0.00" class="w-full bg-stone-50 border border-stone-200 rounded-xl px-3 py-2 text-sm font-black text-emerald-900 focus:ring-2 focus:ring-emerald-500 outline-hidden" required>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-stone-700 mb-1">البيان والسبب (شراء ديزل، كراتين، يومية عمال...)</label>
+          <input type="text" id="transfer-notes" placeholder="اكتب الغرض من تسليم العهدة..." class="w-full bg-stone-50 border border-stone-200 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-emerald-500 outline-hidden" required>
+        </div>
+
+        <div class="flex items-center justify-end gap-2 pt-3 border-t border-stone-100">
+          <button type="button" onclick="closeTransferModal()" class="px-4 py-2 rounded-xl text-stone-500 hover:bg-stone-100 text-xs font-bold cursor-pointer">إلغاء</button>
+          <button type="submit" id="submit-transfer-btn" class="bg-emerald-800 hover:bg-emerald-700 text-white px-5 py-2 rounded-xl text-xs font-bold shadow-md transition cursor-pointer">
+            إرسال طلب التسليم والقبض
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: DEPOSIT / ADD FUNDS TO WALLET -->
+  <div id="deposit-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs hidden no-print">
+    <div class="bg-white rounded-3xl max-w-md w-full overflow-hidden shadow-2xl border border-stone-100">
+      <div class="bg-stone-900 text-white p-4 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <span class="text-xl">💰</span>
+          <h3 class="font-black text-base">تغذية عهدة نقدية جديدة</h3>
+        </div>
+        <button onclick="closeDepositModal()" class="text-stone-400 hover:text-white p-1 rounded-lg cursor-pointer">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <form id="deposit-form" onsubmit="submitDeposit(event)" class="p-5 space-y-4">
+        <div>
+          <label class="block text-xs font-bold text-stone-700 mb-1">المستفيد / صاحب المحفظة</label>
+          <select id="deposit-user" class="w-full bg-stone-50 border border-stone-200 rounded-xl px-3 py-2 text-xs font-bold focus:ring-2 focus:ring-stone-500 outline-hidden" required>
+            <!-- Loaded by JS -->
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-stone-700 mb-1">المبلغ المودع (ريال)</label>
+          <input type="number" id="deposit-amount" min="1" step="any" placeholder="0.00" class="w-full bg-stone-50 border border-stone-200 rounded-xl px-3 py-2 text-sm font-black text-stone-900 focus:ring-2 focus:ring-stone-500 outline-hidden" required>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-stone-700 mb-1">البيان ومصدر العهدة (سحب بنكي، تمويل صاحب المزرعة...)</label>
+          <input type="text" id="deposit-notes" placeholder="مثال: تغذية عهدة نقدية من حساب المزرعة البنكي..." class="w-full bg-stone-50 border border-stone-200 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-stone-500 outline-hidden" required>
+        </div>
+
+        <div class="flex items-center justify-end gap-2 pt-3 border-t border-stone-100">
+          <button type="button" onclick="closeDepositModal()" class="px-4 py-2 rounded-xl text-stone-500 hover:bg-stone-100 text-xs font-bold cursor-pointer">إلغاء</button>
+          <button type="submit" id="submit-deposit-btn" class="bg-stone-900 hover:bg-stone-800 text-white px-5 py-2 rounded-xl text-xs font-bold shadow-md transition cursor-pointer">
+            إيداع وتحديث المحفظة
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    let allCrops = [];
+    let allExpenseCats = [];
+    let currentTab = 'crops';
+
+    const todayStr = new Date().toISOString().split('T')[0];
+    document.getElementById('harvest-date').value = todayStr;
+    document.getElementById('expense-date').value = todayStr;
+    document.getElementById('sale-date').value = todayStr;
+
+    async function loadData() {
+      try {
+        const [itemsRes, logsRes, catsRes, expRes, salesRes] = await Promise.all([
+          fetch('/api/items'),
+          fetch('/api/harvest'),
+          fetch('/api/expense-categories'),
+          fetch('/api/expenses'),
+          fetch('/api/sales')
+        ]);
+
+        allCrops = await itemsRes.json();
+        const logs = await logsRes.json();
+        allExpenseCats = await catsRes.json();
+        const expenses = await expRes.json();
+        const sales = await salesRes.json();
+
+        if (document.getElementById('total-harvest-count')) {
+          document.getElementById('total-harvest-count').textContent = logs.length;
+        }
+
+        const totalExp = expenses.reduce((sum, e) => sum + Number(e.amount || 0), 0);
+        if (document.getElementById('total-expenses-amount')) {
+          document.getElementById('total-expenses-amount').textContent = totalExp.toLocaleString();
+        }
+
+        const totalSales = sales.reduce((sum, s) => sum + Number(s.total_amount || 0), 0);
+        if (document.getElementById('total-sales-amount')) {
+          document.getElementById('total-sales-amount').textContent = totalSales.toLocaleString();
+        }
+
+        renderCrops(allCrops);
+        populateSelects(allCrops, allExpenseCats);
+        renderExpenseCategories(allExpenseCats);
+        renderLogs(logs);
+        renderExpenses(expenses);
+        renderSales(sales);
+        await loadWalletsData();
+        initActiveUser();
+      } catch (err) {
+        console.error('فشل في جلب البيانات:', err);
+      }
+    }
+
+    function renderCrops(crops) {
+      const container = document.getElementById('crops-container');
+      container.innerHTML = '';
+
+      crops.forEach(crop => {
+        const stock = Number(crop.current_stock || 0);
+        const card = document.createElement('div');
+        card.className = "bg-white rounded-2xl border border-stone-200 p-4 shadow-xs hover:shadow-md transition flex flex-col justify-between";
+        card.innerHTML = `
+          <div>
+            <div class="flex items-start justify-between gap-1 mb-1.5">
+              <span class="text-[10px] bg-stone-100 text-stone-600 px-2 py-0.5 rounded-md font-bold">${crop.category || 'عام'}</span>
+              <span class="text-[10px] font-mono text-stone-400">${crop.code || ''}</span>
+            </div>
+            <h4 class="font-black text-stone-900 text-sm mb-2">${crop.name}</h4>
+          </div>
+
+          <div class="pt-2 border-t border-stone-100 flex items-center justify-between">
+            <div>
+              <span class="text-[10px] text-stone-400 block">المخزون الحالي</span>
+              <span class="text-base font-black font-mono ${stock > 0 ? 'text-emerald-700' : 'text-stone-400'}">${stock}</span>
+              <span class="text-[10px] text-stone-500 mr-0.5">${crop.unit || ''}</span>
+            </div>
+            <div class="flex gap-1.5">
+              <button onclick="quickHarvest('${crop.id}')" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-[11px] font-bold px-2 py-1.5 rounded-lg border border-emerald-200 transition cursor-pointer">
+                + حصاد
+              </button>
+              ${stock > 0 ? `
+              <button onclick="quickSale('${crop.id}')" class="bg-blue-50 hover:bg-blue-100 text-blue-800 text-[11px] font-bold px-2 py-1.5 rounded-lg border border-blue-200 transition cursor-pointer">
+                بيع
+              </button>` : ''}
+            </div>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+
+      document.getElementById('crops-filter-count').textContent = `عرض ${crops.length} صنف`;
+    }
+
+    function filterCrops() {
+      const query = document.getElementById('crop-search').value.toLowerCase().trim();
+      const filtered = allCrops.filter(c => c.name.toLowerCase().includes(query) || (c.category || '').toLowerCase().includes(query));
+      renderCrops(filtered);
+    }
+
+    function populateSelects(crops, expCats) {
+      // Harvest Crop Select
+      const hSelect = document.getElementById('harvest-crop-select');
+      hSelect.innerHTML = '<option value="">-- اختر المحصول --</option>';
+      crops.forEach(crop => {
+        const opt = document.createElement('option');
+        opt.value = crop.id;
+        opt.textContent = `${crop.name} (${crop.unit || 'وحدة'}) - [المخزون الحالي: ${crop.current_stock || 0}]`;
+        hSelect.appendChild(opt);
+      });
+
+      // Expense Category Select
+      const expCatSelect = document.getElementById('expense-cat-select');
+      expCatSelect.innerHTML = '<option value="">-- اختر صنف المصروف --</option>';
+      expCats.forEach(cat => {
+        const opt = document.createElement('option');
+        opt.value = cat.id;
+        opt.textContent = `${cat.name} ${cat.notes ? `(${cat.notes})` : ''}`;
+        expCatSelect.appendChild(opt);
+      });
+
+      // Expense Filter Select
+      const filterCat = document.getElementById('expense-filter-cat');
+      filterCat.innerHTML = '<option value="">جميع تصنيفات المصاريف</option>';
+      expCats.forEach(cat => {
+        const opt = document.createElement('option');
+        opt.value = cat.id;
+        opt.textContent = cat.name;
+        filterCat.appendChild(opt);
+      });
+
+      // Expense Crop Select
+      const expCropSelect = document.getElementById('expense-crop-select');
+      expCropSelect.innerHTML = '<option value="">مصروف عام للمزرعة (غير مخصص لمحصول بعينه)</option>';
+      crops.forEach(crop => {
+        const opt = document.createElement('option');
+        opt.value = crop.id;
+        opt.textContent = `خاص بمحصول: ${crop.name}`;
+        expCropSelect.appendChild(opt);
+      });
+    }
+
+    function onCropSelectChange() {
+      const select = document.getElementById('harvest-crop-select');
+      const crop = allCrops.find(c => c.id === select.value);
+      if (crop) {
+        document.getElementById('harvest-unit').value = crop.unit || 'وحدة';
+      }
+    }
+
+    function onExpenseCatChange() {
+      const select = document.getElementById('expense-cat-select');
+      const cat = allExpenseCats.find(c => c.id === select.value);
+      if (cat && !document.getElementById('expense-title').value) {
+        document.getElementById('expense-title').value = cat.name;
+      }
+    }
+
+    function renderLogs(logs) {
+      const tbody = document.getElementById('logs-table-body');
+      tbody.innerHTML = '';
+
+      if (logs.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center text-stone-400">لا توجد عمليات حصاد مسجلة حتى الآن</td></tr>`;
+        return;
+      }
+
+      logs.forEach(log => {
+        const tr = document.createElement('tr');
+        tr.className = "hover:bg-stone-50/60 transition";
+        tr.innerHTML = `
+          <td class="p-3 font-semibold text-stone-600 whitespace-nowrap">${log.harvest_date}</td>
+          <td class="p-3 font-bold text-stone-900">${log.crop_name}</td>
+          <td class="p-3 text-center">
+            <span class="inline-block bg-emerald-100 text-emerald-800 font-mono font-bold px-2.5 py-0.5 rounded-lg text-xs">
+              +${log.quantity} ${log.unit}
+            </span>
+          </td>
+          <td class="p-3 text-stone-600">${log.field_location || 'الحقل الرئيسي'}</td>
+          <td class="p-3 text-stone-600">${log.quality_grade || '-'}</td>
+          <td class="p-3 text-stone-500 max-w-xs truncate">${log.notes || '-'}</td>
+          <td class="p-3 text-center">
+            <button onclick="deleteLog('${log.id}')" class="text-stone-300 hover:text-rose-600 p-1 transition cursor-pointer" title="حذف وتعديل المخزون">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+            </button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function renderExpenses(expenses) {
+      const tbody = document.getElementById('expenses-table-body');
+      tbody.innerHTML = '';
+
+      if (expenses.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="8" class="p-6 text-center text-stone-400">لا توجد مصاريف مسجلة حتى الآن</td></tr>`;
+        return;
+      }
+
+      expenses.forEach(exp => {
+        const tr = document.createElement('tr');
+        tr.className = "hover:bg-stone-50/60 transition";
+        tr.innerHTML = `
+          <td class="p-3 font-semibold text-stone-600 whitespace-nowrap">${exp.expense_date}</td>
+          <td class="p-3">
+            <span class="bg-amber-100 text-amber-900 font-bold px-2 py-0.5 rounded-md text-[11px]">${exp.category_name}</span>
+          </td>
+          <td class="p-3 font-bold text-stone-900">${exp.title}</td>
+          <td class="p-3 text-stone-600">
+            ${exp.crop_id ? `<span class="bg-emerald-50 text-emerald-800 px-2 py-0.5 rounded font-bold text-[11px]">${exp.crop_name}</span>` : '<span class="text-stone-400">مصروف عام</span>'}
+          </td>
+          <td class="p-3 text-center text-stone-600">
+            ${exp.payment_method === 'cash' ? 'كاش' : exp.payment_method === 'bank' ? 'تحويل' : 'آجل'}
+          </td>
+          <td class="p-3 text-left font-mono font-black text-amber-900">${Number(exp.amount).toFixed(2)}</td>
+          <td class="p-3 text-stone-600">${exp.recipient || '-'}</td>
+          <td class="p-3 text-center">
+            <button onclick="deleteExpenseItem('${exp.id}')" class="text-stone-300 hover:text-rose-600 p-1 transition cursor-pointer" title="حذف المصروف">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+            </button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function renderSales(sales) {
+      const tbody = document.getElementById('sales-table-body');
+      tbody.innerHTML = '';
+
+      if (sales.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="8" class="p-6 text-center text-stone-400">لا توجد فواتير مبيعات مسجلة حتى الآن</td></tr>`;
+        return;
+      }
+
+      sales.forEach(sale => {
+        const tr = document.createElement('tr');
+        tr.className = "hover:bg-stone-50/60 transition";
+        tr.innerHTML = `
+          <td class="p-3 font-mono font-bold text-blue-800 whitespace-nowrap">${sale.invoice_number}</td>
+          <td class="p-3 font-semibold text-stone-600 whitespace-nowrap">${sale.invoice_date}</td>
+          <td class="p-3 font-bold text-stone-900">${sale.customer_name}</td>
+          <td class="p-3 text-center font-bold text-stone-600">${(sale.items || []).length} أصناف</td>
+          <td class="p-3 text-center text-stone-600">${sale.payment_method === 'cash' ? 'كاش' : sale.payment_method === 'bank' ? 'تحويل' : 'آجل'}</td>
+          <td class="p-3 text-left font-mono font-black text-blue-900">${Number(sale.total_amount).toFixed(2)}</td>
+          <td class="p-3 text-center">
+            <span class="inline-block px-2.5 py-0.5 rounded-full font-bold text-[10px] ${sale.payment_status === 'PAID' ? 'bg-emerald-100 text-emerald-800' : sale.payment_status === 'PARTIAL' ? 'bg-amber-100 text-amber-800' : 'bg-rose-100 text-rose-800'}">
+              ${sale.payment_status === 'PAID' ? 'مدفوعة' : sale.payment_status === 'PARTIAL' ? 'جزئي' : 'آجل'}
+            </span>
+          </td>
+          <td class="p-3 text-center">
+            <div class="flex items-center justify-center gap-1.5">
+              <button onclick="previewInvoice('${sale.id}')" class="text-blue-700 hover:bg-blue-50 p-1.5 rounded-lg border border-blue-200 transition cursor-pointer" title="طباعة الفاتورة">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+              </button>
+              <button onclick="deleteSaleItem('${sale.id}', '${sale.invoice_number}')" class="text-stone-300 hover:text-rose-600 p-1.5 rounded-lg transition cursor-pointer" title="إلغاء الفاتورة واسترجاع المخزون">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+              </button>
+            </div>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    async function loadHarvestLogs() {
+      const res = await fetch('/api/harvest');
+      const logs = await res.json();
+      renderLogs(logs);
+      document.getElementById('total-harvest-count').textContent = logs.length;
+    }
+
+    async function loadExpenses() {
+      const catId = document.getElementById('expense-filter-cat').value;
+      const url = catId ? `/api/expenses?categoryId=${catId}` : '/api/expenses';
+      const res = await fetch(url);
+      const expenses = await res.json();
+      renderExpenses(expenses);
+
+      const totalExp = expenses.reduce((sum, e) => sum + Number(e.amount || 0), 0);
+      document.getElementById('total-expenses-amount').textContent = totalExp.toLocaleString();
+    }
+
+    async function loadSales() {
+      const status = document.getElementById('sales-filter-status').value;
+      const url = status ? `/api/sales?paymentStatus=${status}` : '/api/sales';
+      const res = await fetch(url);
+      const sales = await res.json();
+      renderSales(sales);
+
+      const totalSales = sales.reduce((sum, s) => sum + Number(s.total_amount || 0), 0);
+      document.getElementById('total-sales-amount').textContent = totalSales.toLocaleString();
+    }
+
+    // Modal Triggers
+    function openHarvestModal() { document.getElementById('harvest-modal').classList.remove('hidden'); }
+    function closeHarvestModal() {
+      document.getElementById('harvest-modal').classList.add('hidden');
+      document.getElementById('harvest-form').reset();
+      document.getElementById('harvest-date').value = todayStr;
+    }
+
+    function openExpenseModal() { document.getElementById('expense-modal').classList.remove('hidden'); }
+    function closeExpenseModal() {
+      document.getElementById('expense-modal').classList.add('hidden');
+      document.getElementById('expense-form').reset();
+      document.getElementById('expense-date').value = todayStr;
+    }
+
+    function openSaleModal() {
+      document.getElementById('sale-modal').classList.remove('hidden');
+      if (document.getElementById('sale-items-rows').children.length === 0) {
+        addSaleItemRow();
+      }
+    }
+    function closeSaleModal() {
+      document.getElementById('sale-modal').classList.add('hidden');
+      document.getElementById('sale-form').reset();
+      document.getElementById('sale-date').value = todayStr;
+      document.getElementById('sale-items-rows').innerHTML = '';
+      calcSaleTotals();
+    }
+
+    function closeInvoiceModal() { document.getElementById('invoice-preview-modal').classList.add('hidden'); }
+
+    function quickHarvest(cropId) {
+      openHarvestModal();
+      document.getElementById('harvest-crop-select').value = cropId;
+      onCropSelectChange();
+      document.getElementById('harvest-qty').focus();
+    }
+
+    function quickSale(cropId) {
+      openSaleModal();
+      const rows = document.getElementById('sale-items-rows');
+      if (rows.children.length === 0) addSaleItemRow();
+      const firstSelect = rows.querySelector('.sale-crop-select');
+      if (firstSelect) {
+        firstSelect.value = cropId;
+        onSaleCropChange(firstSelect);
+      }
+    }
+
+    function quickExpense(catId) {
+      openExpenseModal();
+      const sel = document.getElementById('expense-cat-select');
+      if (sel) {
+        sel.value = catId;
+        onExpenseCatChange();
+      }
+      const amtInput = document.getElementById('expense-amount');
+      if (amtInput) amtInput.focus();
+    }
+
+    function renderExpenseCategories(cats) {
+      const container = document.getElementById('expense-cats-container');
+      if (!container) return;
+      container.innerHTML = '';
+
+      cats.forEach(cat => {
+        const card = document.createElement('div');
+        card.className = "bg-white rounded-2xl border border-stone-200 p-3 shadow-xs hover:shadow-md hover:border-amber-400 transition flex flex-col justify-between";
+        card.innerHTML = `
+          <div>
+            <div class="flex items-center justify-between gap-1 mb-1">
+              <span class="text-[9px] bg-amber-100 text-amber-900 px-1.5 py-0.5 rounded font-mono font-bold">${cat.code || 'EXP'}</span>
+              <span class="text-[9px] text-stone-400 truncate max-w-[100px]">${cat.notes || ''}</span>
+            </div>
+            <h4 class="font-black text-stone-900 text-xs mt-1 mb-2">${cat.name}</h4>
+          </div>
+          <button onclick="quickExpense('${cat.id}')" class="w-full bg-amber-50 hover:bg-amber-100 text-amber-900 text-[11px] font-bold py-1 px-2 rounded-lg border border-amber-200 transition cursor-pointer flex items-center justify-center gap-1">
+            <span>+ صرف</span>
+          </button>
+        `;
+        container.appendChild(card);
+      });
+
+      const countBadge = document.getElementById('expense-cats-count');
+      if (countBadge) countBadge.textContent = `${cats.length} صنف معتمد`;
+    }
+
+    // Dynamic Sales Rows
+    function addSaleItemRow() {
+      const container = document.getElementById('sale-items-rows');
+      const row = document.createElement('div');
+      row.className = "flex flex-wrap sm:flex-nowrap items-center gap-2 bg-stone-50 p-2.5 rounded-xl border border-stone-200 text-xs";
+      row.innerHTML = `
+        <select class="sale-crop-select flex-1 bg-white border border-stone-200 rounded-lg px-2.5 py-1.5 font-bold outline-hidden" onchange="onSaleCropChange(this)" required>
+          <option value="">-- اختر المحصول المباع --</option>
+          ${allCrops.map(c => `<option value="${c.id}" data-stock="${c.current_stock || 0}" data-unit="${c.unit || ''}" data-price="${c.default_sell_price || 0}">
+            ${c.name} (المتوفر: ${c.current_stock || 0} ${c.unit || ''})
+          </option>`).join('')}
+        </select>
+        <div class="w-24">
+          <input type="number" min="0.1" step="any" placeholder="الكمية" class="sale-item-qty w-full bg-white border border-stone-200 rounded-lg px-2 py-1.5 font-bold text-center outline-hidden" oninput="calcSaleTotals()" required>
+        </div>
+        <span class="sale-item-unit text-stone-500 font-medium w-14 text-center">وحدة</span>
+        <div class="w-28 flex items-center gap-1">
+          <input type="number" min="0" step="any" placeholder="سعر الوحدة" class="sale-item-price w-full bg-white border border-stone-200 rounded-lg px-2 py-1.5 font-bold text-center outline-hidden" oninput="calcSaleTotals()" required>
+          <span class="text-stone-400">ريال</span>
+        </div>
+        <span class="sale-item-total font-mono font-bold text-blue-900 w-24 text-left">0.00</span>
+        <button type="button" onclick="removeSaleItemRow(this)" class="text-stone-300 hover:text-rose-600 p-1 cursor-pointer">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+        </button>
+      `;
+      container.appendChild(row);
+    }
+
+    function removeSaleItemRow(btn) {
+      const container = document.getElementById('sale-items-rows');
+      if (container.children.length > 1) {
+        btn.closest('div').remove();
+        calcSaleTotals();
+      }
+    }
+
+    function onSaleCropChange(selectElem) {
+      const selectedOption = selectElem.options[selectElem.selectedIndex];
+      const row = selectElem.closest('div');
+      const unit = selectedOption.getAttribute('data-unit') || 'وحدة';
+      const price = selectedOption.getAttribute('data-price') || 0;
+
+      row.querySelector('.sale-item-unit').textContent = unit;
+      if (Number(price) > 0 && !row.querySelector('.sale-item-price').value) {
+        row.querySelector('.sale-item-price').value = price;
+      }
+      calcSaleTotals();
+    }
+
+    function calcSaleTotals() {
+      const rows = document.querySelectorAll('#sale-items-rows > div');
+      let subtotal = 0;
+
+      rows.forEach(row => {
+        const qty = Number(row.querySelector('.sale-item-qty').value || 0);
+        const price = Number(row.querySelector('.sale-item-price').value || 0);
+        const lineTotal = qty * price;
+        row.querySelector('.sale-item-total').textContent = lineTotal.toFixed(2);
+        subtotal += lineTotal;
+      });
+
+      const discount = Number(document.getElementById('sale-discount').value || 0);
+      const total = Math.max(0, subtotal - discount);
+
+      document.getElementById('sale-subtotal-display').textContent = `${subtotal.toFixed(2)} ريال`;
+      document.getElementById('sale-total-display').textContent = `${total.toFixed(2)} ريال`;
+
+      const paidInput = document.getElementById('sale-paid-amount');
+      if (!paidInput.value) {
+        paidInput.placeholder = total.toFixed(2);
+      }
+    }
+
+    // Submissions
+    async function submitHarvest(e) {
+      e.preventDefault();
+      const btn = document.getElementById('submit-btn');
+      btn.disabled = true;
+      btn.textContent = 'جاري الحفظ...';
+
+      try {
+        const payload = {
+          itemId: document.getElementById('harvest-crop-select').value,
+          quantity: Number(document.getElementById('harvest-qty').value),
+          unit: document.getElementById('harvest-unit').value,
+          harvestDate: document.getElementById('harvest-date').value,
+          qualityGrade: document.getElementById('harvest-grade').value,
+          fieldLocation: document.getElementById('harvest-location').value,
+          notes: document.getElementById('harvest-notes').value
+        };
+
+        const res = await fetch('/api/harvest', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'حدث خطأ أثناء الحفظ');
+
+        closeHarvestModal();
+        await loadData();
+        alert(data.message || 'تم تسجيل الحصاد وتحديث المخزون بنجاح!');
+      } catch (err) {
+        alert(err.message);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'حفظ وتحديث المخزون';
+      }
+    }
+
+    async function submitExpense(e) {
+      e.preventDefault();
+      const btn = document.getElementById('submit-expense-btn');
+      btn.disabled = true;
+      btn.textContent = 'جاري الحفظ...';
+
+      try {
+        const catSelect = document.getElementById('expense-cat-select');
+        const selectedCat = allExpenseCats.find(c => c.id === catSelect.value);
+
+        const cropSelect = document.getElementById('expense-crop-select');
+        const selectedCrop = allCrops.find(c => c.id === cropSelect.value);
+
+        const payload = {
+          categoryId: catSelect.value,
+          categoryName: selectedCat ? selectedCat.name : '',
+          title: document.getElementById('expense-title').value,
+          amount: Number(document.getElementById('expense-amount').value),
+          expenseDate: document.getElementById('expense-date').value,
+          cropId: cropSelect.value || null,
+          cropName: selectedCrop ? selectedCrop.name : null,
+          paymentMethod: document.getElementById('expense-payment-method').value,
+          recipient: document.getElementById('expense-recipient').value,
+          invoiceRef: document.getElementById('expense-ref').value
+        };
+
+        const res = await fetch('/api/expenses', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'حدث خطأ أثناء حفظ المصروف');
+
+        closeExpenseModal();
+        await loadData();
+        if (currentTab === 'expenses') loadExpenses();
+        alert(data.message || 'تم تسجيل المصروف وترحيله بنجاح!');
+      } catch (err) {
+        alert(err.message);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'حفظ وترحيل المصروف';
+      }
+    }
+
+    async function submitSale(e) {
+      e.preventDefault();
+      const btn = document.getElementById('submit-sale-btn');
+      btn.disabled = true;
+      btn.textContent = 'جاري إصدار الفاتورة وخصم المخزون...';
+
+      try {
+        const rows = document.querySelectorAll('#sale-items-rows > div');
+        const items = [];
+
+        rows.forEach(row => {
+          const select = row.querySelector('.sale-crop-select');
+          const crop = allCrops.find(c => c.id === select.value);
+          items.push({
+            itemId: select.value,
+            cropName: crop ? crop.name : '',
+            quantity: Number(row.querySelector('.sale-item-qty').value || 0),
+            unit: crop ? crop.unit : 'وحدة',
+            unitPrice: Number(row.querySelector('.sale-item-price').value || 0)
+          });
+        });
+
+        const payload = {
+          customerName: document.getElementById('sale-customer-name').value,
+          customerPhone: document.getElementById('sale-customer-phone').value,
+          invoiceDate: document.getElementById('sale-date').value,
+          paymentMethod: document.getElementById('sale-payment-method').value,
+          paidAmount: document.getElementById('sale-paid-amount').value,
+          discount: Number(document.getElementById('sale-discount').value || 0),
+          notes: document.getElementById('sale-notes').value,
+          items: items
+        };
+
+        const res = await fetch('/api/sales', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'فشل في حفظ الفاتورة');
+
+        closeSaleModal();
+        await loadData();
+        if (currentTab === 'sales') loadSales();
+
+        // Open Invoice preview
+        previewInvoice(data.invoiceId);
+      } catch (err) {
+        alert(err.message);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'حفظ الفاتورة وخصم المخزون';
+      }
+    }
+
+    async function previewInvoice(invoiceId) {
+      try {
+        const res = await fetch(`/api/sales/${invoiceId}`);
+        const inv = await res.json();
+        if (!res.ok) throw new Error(inv.error);
+
+        const container = document.getElementById('printable-invoice-content');
+        container.innerHTML = `
+          <!-- Invoice Header -->
+          <div class="flex items-start justify-between border-b-2 border-stone-200 pb-4">
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="text-2xl">🌾</span>
+                <h2 class="text-xl font-black text-emerald-900">${inv.settings?.farm_name || 'مزرعة الخير النموذجية'}</h2>
+              </div>
+              <p class="text-xs text-stone-500 mt-1">فاتورة مبيعات محاصيل زراعية رسمية</p>
+            </div>
+            <div class="text-left bg-stone-50 p-2.5 rounded-xl border border-stone-200 min-w-44 text-xs" dir="rtl">
+              <div class="flex justify-between mb-1">
+                <span class="text-stone-400">رقم الفاتورة:</span>
+                <span class="font-mono font-bold text-stone-900">${inv.invoice_number}</span>
+              </div>
+              <div class="flex justify-between mb-1">
+                <span class="text-stone-400">التاريخ:</span>
+                <span class="font-bold">${inv.invoice_date}</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-stone-400">الحالة:</span>
+                <span class="font-bold ${inv.payment_status === 'PAID' ? 'text-emerald-700' : 'text-amber-700'}">
+                  ${inv.payment_status === 'PAID' ? 'مدفوعة بالكامل' : 'آجل / جزئي'}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Customer details -->
+          <div class="flex justify-between bg-stone-50 p-3 rounded-xl border border-stone-200 text-xs">
+            <div>
+              <span class="text-stone-400 block mb-0.5">العميل / المشتري:</span>
+              <span class="font-black text-stone-900 text-sm">${inv.customer_name}</span>
+              ${inv.customer_phone ? `<span class="text-stone-500 mr-2" dir="ltr">${inv.customer_phone}</span>` : ''}
+            </div>
+            <div class="text-left">
+              <span class="text-stone-400 block mb-0.5">طريقة الدفع:</span>
+              <span class="font-bold text-stone-800">${inv.payment_method === 'cash' ? 'نقداً (كاش)' : inv.payment_method === 'bank' ? 'تحويل بنكي' : 'آجل'}</span>
+            </div>
+          </div>
+
+          <!-- Items Table -->
+          <div class="border border-stone-200 rounded-xl overflow-hidden">
+            <table class="w-full text-right text-xs">
+              <thead>
+                <tr class="bg-stone-100 text-stone-700 font-bold border-b border-stone-200">
+                  <th class="p-2.5">#</th>
+                  <th class="p-2.5">المحصول / الصنف</th>
+                  <th class="p-2.5 text-center">الكمية</th>
+                  <th class="p-2.5 text-center">الوحدة</th>
+                  <th class="p-2.5 text-left">سعر الوحدة</th>
+                  <th class="p-2.5 text-left">الإجمالي (ريال)</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-stone-100">
+                ${(inv.items || []).map((item, idx) => `
+                  <tr>
+                    <td class="p-2.5 text-stone-400 font-mono">${idx + 1}</td>
+                    <td class="p-2.5 font-bold text-stone-900">${item.crop_name}</td>
+                    <td class="p-2.5 text-center font-bold font-mono">${item.quantity}</td>
+                    <td class="p-2.5 text-center text-stone-500">${item.unit}</td>
+                    <td class="p-2.5 text-left font-mono">${Number(item.unit_price).toFixed(2)}</td>
+                    <td class="p-2.5 text-left font-mono font-bold text-stone-900">${Number(item.total_price).toFixed(2)}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Totals -->
+          <div class="flex justify-between items-start gap-4 border-t border-stone-200 pt-3">
+            <div class="text-xs text-stone-400">
+              <p>شكراً لتعاملكم مع مزرعتنا 🌿</p>
+              ${inv.notes ? `<p class="mt-1 text-stone-600 font-semibold">ملاحظة: ${inv.notes}</p>` : ''}
+            </div>
+            <div class="w-60 space-y-1.5 text-xs">
+              <div class="flex justify-between text-stone-600">
+                <span>المجموع الأولي:</span>
+                <span class="font-mono font-bold">${Number(inv.subtotal).toFixed(2)} ريال</span>
+              </div>
+              ${inv.discount > 0 ? `
+              <div class="flex justify-between text-rose-600 font-bold">
+                <span>الخصم الممنوح:</span>
+                <span class="font-mono">-${Number(inv.discount).toFixed(2)} ريال</span>
+              </div>` : ''}
+              <div class="flex justify-between text-base font-black text-blue-950 border-t border-stone-200 pt-1.5">
+                <span>الإجمالي المستحق:</span>
+                <span class="font-mono text-blue-800">${Number(inv.total_amount).toFixed(2)} ريال</span>
+              </div>
+              <div class="flex justify-between text-stone-600 pt-0.5">
+                <span>المبلغ المدفوع:</span>
+                <span class="font-mono font-bold text-emerald-700">${Number(inv.paid_amount || 0).toFixed(2)} ريال</span>
+              </div>
+              ${Number(inv.remaining_amount || 0) > 0 ? `
+              <div class="flex justify-between text-rose-700 font-bold bg-rose-50 p-1 rounded">
+                <span>المتبقي (آجل):</span>
+                <span class="font-mono">${Number(inv.remaining_amount).toFixed(2)} ريال</span>
+              </div>` : ''}
+            </div>
+          </div>
+        `;
+
+        document.getElementById('invoice-preview-modal').classList.remove('hidden');
+      } catch (err) {
+        alert(err.message);
+      }
+    }
+
+    async function deleteLog(logId) {
+      if (!confirm('هل أنت متأكد من حذف هذا السجل؟ سيتم خصم الكمية من رصيد المخزون في السحابة تلقائياً.')) return;
+      try {
+        const res = await fetch(`/api/harvest/${logId}`, { method: 'DELETE' });
+        await loadData();
+      } catch (err) {
+        alert(err.message);
+      }
+    }
+
+    async function deleteExpenseItem(expId) {
+      if (!confirm('هل أنت متأكد من حذف هذا المصروف؟')) return;
+      try {
+        const res = await fetch(`/api/expenses/${expId}`, { method: 'DELETE' });
+        await loadData();
+        if (currentTab === 'expenses') loadExpenses();
+      } catch (err) {
+        alert(err.message);
+      }
+    }
+
+    async function deleteSaleItem(saleId, invNum) {
+      if (!confirm(`هل أنت متأكد من إلغاء الفاتورة ${invNum}؟ سيتم استعادة الكميات المباعة إلى رصيد المخزون في السحابة تلقائياً.`)) return;
+      try {
+        const res = await fetch(`/api/sales/${saleId}`, { method: 'DELETE' });
+        await loadData();
+        if (currentTab === 'sales') loadSales();
+      } catch (err) {
+        alert(err.message);
+      }
+    }
+
+    async function loadMonthlyReport() {
+      const periodInput = document.getElementById('report-period-input');
+      const curPeriod = new Date().toISOString().slice(0, 7);
+      if (!periodInput.value) {
+        periodInput.value = curPeriod;
+      }
+      const period = periodInput.value;
+
+      try {
+        const res = await fetch(`/api/reports/monthly?period=${period}`);
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'فشل في تحميل التقرير');
+
+        document.getElementById('rep-sales').textContent = Number(data.totalMonthlySales || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        document.getElementById('rep-expenses').textContent = Number(data.totalMonthlyExpenses || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        
+        const netProfit = Number(data.netMonthlyProfit || 0);
+        document.getElementById('rep-profit').textContent = netProfit.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        
+        const profitCard = document.getElementById('rep-profit-card');
+        const profitLabel = document.getElementById('rep-profit-label');
+        if (netProfit >= 0) {
+          profitCard.className = "p-4 rounded-2xl border bg-emerald-50 border-emerald-200";
+          profitLabel.className = "text-xs font-bold block mb-1 text-emerald-800";
+          profitLabel.textContent = "3. صافي الربح الشهري";
+          document.getElementById('rep-profit').className = "text-2xl font-black font-mono text-emerald-950";
+        } else {
+          profitCard.className = "p-4 rounded-2xl border bg-rose-50 border-rose-200";
+          profitLabel.className = "text-xs font-bold block mb-1 text-rose-800";
+          profitLabel.textContent = "3. صافي الخسارة الشهرية";
+          document.getElementById('rep-profit').className = "text-2xl font-black font-mono text-rose-950";
+        }
+
+        document.getElementById('rep-margin').textContent = `${data.overallMarginPct || 0}%`;
+
+        // Render Crop Economics Table
+        const tbody = document.getElementById('crop-economics-body');
+        tbody.innerHTML = '';
+
+        if (!data.cropAnalysis || data.cropAnalysis.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="9" class="p-8 text-center text-stone-400 font-bold">لا توجد حركات إنتاج أو مبيعات أو تكاليف مسجلة لهذا الشهر (${period})</td></tr>`;
+          return;
+        }
+
+        data.cropAnalysis.forEach(c => {
+          const tr = document.createElement('tr');
+          tr.className = "hover:bg-stone-50/60 transition";
+          const isProfitable = c.netProfit >= 0;
+          tr.innerHTML = `
+            <td class="p-3">
+              <span class="font-bold text-stone-900 block">${c.cropName}</span>
+              <span class="text-[10px] text-stone-400 font-semibold">${c.category || ''}</span>
+            </td>
+            <td class="p-3 text-center font-mono font-bold text-emerald-800">${c.harvestQty} ${c.unit}</td>
+            <td class="p-3 text-center font-mono font-black ${c.unitCost > 0 ? 'text-amber-800' : 'text-stone-400'}">
+              ${c.unitCost > 0 ? `${c.unitCost.toFixed(2)} ريال` : '-'}
+            </td>
+            <td class="p-3 text-center font-mono font-bold text-blue-800">${c.soldQty} ${c.unit}</td>
+            <td class="p-3 text-center font-mono font-bold text-stone-700">${c.avgSellPrice.toFixed(2)} ريال</td>
+            <td class="p-3 text-left font-mono font-bold text-stone-600">${c.totalExpense.toFixed(2)}</td>
+            <td class="p-3 text-left font-mono font-bold text-blue-900">${c.salesRevenue.toFixed(2)}</td>
+            <td class="p-3 text-center">
+              <span class="inline-block px-2.5 py-0.5 rounded-full font-bold text-xs ${isProfitable ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'}">
+                ${isProfitable ? '+' : ''}${c.netProfit.toFixed(2)} ريال
+              </span>
+            </td>
+            <td class="p-3 text-center font-mono font-bold text-stone-800">${c.currentStock} ${c.unit}</td>
+          `;
+          tbody.appendChild(tr);
+        });
+      } catch (err) {
+        console.error('فشل في تحميل التقرير:', err);
+      }
+    }
+
+    function switchTab(tab) {
+      currentTab = tab;
+      document.getElementById('tab-crops').classList.toggle('hidden', tab !== 'crops');
+      document.getElementById('tab-sales').classList.toggle('hidden', tab !== 'sales');
+      document.getElementById('tab-expenses').classList.toggle('hidden', tab !== 'expenses');
+      document.getElementById('tab-logs').classList.toggle('hidden', tab !== 'logs');
+      document.getElementById('tab-reports').classList.toggle('hidden', tab !== 'reports');
+      document.getElementById('tab-wallets').classList.toggle('hidden', tab !== 'wallets');
+
+      document.getElementById('tab-btn-crops').className = tab === 'crops'
+        ? "pb-3 text-emerald-800 border-b-2 border-emerald-700 whitespace-nowrap transition cursor-pointer"
+        : "pb-3 text-stone-400 hover:text-stone-700 whitespace-nowrap transition cursor-pointer";
+
+      document.getElementById('tab-btn-sales').className = tab === 'sales'
+        ? "pb-3 text-blue-800 border-b-2 border-blue-700 whitespace-nowrap transition cursor-pointer"
+        : "pb-3 text-stone-400 hover:text-stone-700 whitespace-nowrap transition cursor-pointer";
+
+      document.getElementById('tab-btn-expenses').className = tab === 'expenses'
+        ? "pb-3 text-amber-800 border-b-2 border-amber-600 whitespace-nowrap transition cursor-pointer"
+        : "pb-3 text-stone-400 hover:text-stone-700 whitespace-nowrap transition cursor-pointer";
+
+      document.getElementById('tab-btn-logs').className = tab === 'logs'
+        ? "pb-3 text-emerald-800 border-b-2 border-emerald-700 whitespace-nowrap transition cursor-pointer"
+        : "pb-3 text-stone-400 hover:text-stone-700 whitespace-nowrap transition cursor-pointer";
+
+      document.getElementById('tab-btn-reports').className = tab === 'reports'
+        ? "pb-3 text-emerald-900 border-b-2 border-emerald-900 whitespace-nowrap transition cursor-pointer"
+        : "pb-3 text-stone-400 hover:text-stone-700 whitespace-nowrap transition cursor-pointer";
+
+      document.getElementById('tab-btn-wallets').className = tab === 'wallets'
+        ? "pb-3 text-emerald-800 border-b-2 border-emerald-700 whitespace-nowrap transition cursor-pointer relative"
+        : "pb-3 text-stone-400 hover:text-stone-700 whitespace-nowrap transition cursor-pointer relative";
+
+      if (tab === 'logs') loadHarvestLogs();
+      if (tab === 'expenses') loadExpenses();
+      if (tab === 'sales') loadSales();
+      if (tab === 'reports') loadMonthlyReport();
+      if (tab === 'wallets') loadWalletsData();
+    }
+
+    // -------------------------------------------------------------
+    // AUTHENTICATION & WALLETS LOGIC (محمد، علي، حسين)
+    // -------------------------------------------------------------
+    let allUsers = [];
+    let currentUser = null;
+    let activeUserId = null;
+
+    function selectLoginUser(username, password) {
+      document.getElementById('login-username').value = username;
+      document.getElementById('login-password').value = password;
+      const errBox = document.getElementById('login-error-msg');
+      if (errBox) errBox.classList.add('hidden');
+    }
+
+    async function handleLogin(e) {
+      e.preventDefault();
+      const btn = document.getElementById('login-submit-btn');
+      const errBox = document.getElementById('login-error-msg');
+      if (errBox) errBox.classList.add('hidden');
+      btn.disabled = true;
+      btn.textContent = 'جاري التحقق...';
+
+      try {
+        const username = document.getElementById('login-username').value;
+        const password = document.getElementById('login-password').value;
+
+        const res = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password })
+        });
+
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'فشل تسجيل الدخول');
+
+        currentUser = data.user;
+        activeUserId = currentUser.id;
+        localStorage.setItem('farm_user', JSON.stringify(currentUser));
+
+        showAppView();
+        await loadData();
+      } catch (err) {
+        if (errBox) {
+          errBox.textContent = err.message;
+          errBox.classList.remove('hidden');
+        } else {
+          alert(err.message);
+        }
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = `<span>دخول للنظام</span><svg class="w-4 h-4 rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>`;
+      }
+    }
+
+    function logout() {
+      if (!confirm('هل تريد بالتأكيد تسجيل الخروج؟')) return;
+      localStorage.removeItem('farm_user');
+      currentUser = null;
+      activeUserId = null;
+      showLoginView();
+    }
+
+    function showLoginView() {
+      document.getElementById('login-screen').classList.remove('hidden');
+      document.getElementById('app-header').classList.add('hidden');
+      document.getElementById('app-main').classList.add('hidden');
+    }
+
+    function showAppView() {
+      document.getElementById('login-screen').classList.add('hidden');
+      document.getElementById('app-header').classList.remove('hidden');
+      document.getElementById('app-main').classList.remove('hidden');
+
+      if (currentUser) {
+        document.getElementById('current-user-name').textContent = currentUser.name;
+        document.getElementById('current-user-balance').textContent = `الرصيد: ${Number(currentUser.wallet_balance || 0).toLocaleString()} ريال`;
+      }
+    }
+
+    function checkAuthOnLoad() {
+      const saved = localStorage.getItem('farm_user');
+      if (saved) {
+        try {
+          currentUser = JSON.parse(saved);
+          activeUserId = currentUser.id;
+          showAppView();
+          loadData();
+          return;
+        } catch (e) {
+          localStorage.removeItem('farm_user');
+        }
+      }
+      showLoginView();
+    }
+
+    async function loadWalletsData() {
+      try {
+        const [usersRes, trfRes] = await Promise.all([
+          fetch('/api/users'),
+          fetch('/api/wallets/transfers')
+        ]);
+
+        allUsers = await usersRes.json();
+        const transfers = await trfRes.json();
+
+        // Update current user balance display
+        if (currentUser) {
+          const freshUser = allUsers.find(u => u.id === currentUser.id);
+          if (freshUser) {
+            currentUser.wallet_balance = freshUser.wallet_balance;
+            document.getElementById('current-user-balance').textContent = `الرصيد: ${Number(freshUser.wallet_balance || 0).toLocaleString()} ريال`;
+          }
+        }
+
+        // Populate selects
+        populateWalletSelects(allUsers);
+
+        // Render wallet cards
+        renderWalletCards(allUsers);
+
+        // Render pending receipts
+        renderPendingTransfers(transfers);
+
+        // Render transfers history table
+        renderTransfersHistory(transfers);
+      } catch (err) {
+        console.error('فشل في جلب بيانات المحافظ:', err);
+      }
+    }
+
+    function populateWalletSelects(users) {
+      // Transfer sender & receiver
+      const sSelect = document.getElementById('transfer-sender');
+      if (sSelect) {
+        sSelect.innerHTML = users.map(u => `<option value="${u.id}">${u.name} (الرصيد: ${u.wallet_balance} ريال)</option>`).join('');
+        sSelect.value = activeUserId;
+        onTransferSenderChange();
+      }
+
+      // Deposit user select
+      const dSelect = document.getElementById('deposit-user');
+      if (dSelect) {
+        dSelect.innerHTML = users.map(u => `<option value="${u.id}">${u.name} (الرصيد: ${u.wallet_balance} ريال)</option>`).join('');
+        dSelect.value = activeUserId;
+      }
+    }
+
+    function onTransferSenderChange() {
+      const senderId = document.getElementById('transfer-sender').value;
+      const rSelect = document.getElementById('transfer-receiver');
+      if (!rSelect) return;
+      const receivers = allUsers.filter(u => u.id !== senderId);
+      rSelect.innerHTML = receivers.map(u => `<option value="${u.id}">${u.name} (الرصيد: ${u.wallet_balance} ريال)</option>`).join('');
+    }
+
+    function renderWalletCards(users) {
+      const container = document.getElementById('wallets-cards-container');
+      if (!container) return;
+      container.innerHTML = '';
+
+      users.forEach(u => {
+        const isCurrent = u.id === activeUserId;
+        const card = document.createElement('div');
+        card.className = `p-5 rounded-3xl border transition shadow-xs flex flex-col justify-between ${isCurrent ? 'bg-emerald-900 text-white border-emerald-800 ring-2 ring-emerald-500' : 'bg-white text-stone-900 border-stone-200'}`;
+        card.innerHTML = `
+          <div>
+            <div class="flex items-center justify-between mb-3">
+              <div class="flex items-center gap-2.5">
+                <div class="w-10 h-10 rounded-2xl flex items-center justify-center text-lg font-black ${isCurrent ? 'bg-emerald-800 text-emerald-200' : 'bg-emerald-100 text-emerald-900'}">
+                  👤
+                </div>
+                <div>
+                  <h4 class="font-black text-base flex items-center gap-1.5">
+                    ${u.name}
+                    ${isCurrent ? '<span class="text-[10px] bg-emerald-500 text-emerald-950 px-2 py-0.5 rounded-full font-bold">أنت الآن</span>' : ''}
+                  </h4>
+                  <span class="text-[11px] ${isCurrent ? 'text-emerald-300' : 'text-stone-400'} font-semibold">${u.role || 'مسؤول عهدة'}</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="my-4 pt-3 border-t ${isCurrent ? 'border-emerald-800' : 'border-stone-100'}">
+              <span class="text-xs ${isCurrent ? 'text-emerald-300' : 'text-stone-500'} block mb-1">الرصيد النقدي الحالي (الكاش)</span>
+              <div class="flex items-baseline gap-1.5">
+                <span class="text-3xl font-black font-mono tracking-tight ${isCurrent ? 'text-emerald-100' : 'text-emerald-800'}">${Number(u.wallet_balance || 0).toLocaleString()}</span>
+                <span class="text-xs font-bold ${isCurrent ? 'text-emerald-300' : 'text-stone-500'}">ريال</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex gap-2 pt-2">
+            <button onclick="openTransferModal('${u.id}')" class="flex-1 ${isCurrent ? 'bg-emerald-500 hover:bg-emerald-400 text-emerald-950' : 'bg-emerald-700 hover:bg-emerald-600 text-white'} py-2 px-3 rounded-xl font-bold text-xs transition cursor-pointer flex items-center justify-center gap-1">
+              <span>💸 تسليم عهدة</span>
+            </button>
+            <button onclick="openDepositModal('${u.id}')" class="${isCurrent ? 'bg-emerald-800 hover:bg-emerald-700 text-white' : 'bg-stone-100 hover:bg-stone-200 text-stone-700'} py-2 px-3 rounded-xl font-bold text-xs transition cursor-pointer" title="تغذية عهدة كاش">
+              + إيداع
+            </button>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function renderPendingTransfers(transfers) {
+      const container = document.getElementById('pending-transfers-list');
+      if (!container) return;
+      container.innerHTML = '';
+
+      const pending = transfers.filter(t => t.status === 'PENDING');
+      const countElem = document.getElementById('pending-transfers-count');
+      if (countElem) countElem.textContent = `${pending.length} معلق`;
+
+      // Check pending for active user
+      const myPending = pending.filter(t => t.receiver_id === activeUserId);
+      const hBadge = document.getElementById('header-pending-badge');
+      const hCount = document.getElementById('header-pending-count');
+      const tabBadge = document.getElementById('tab-wallets-badge');
+
+      if (myPending.length > 0) {
+        if (hBadge) hBadge.classList.remove('hidden');
+        if (hCount) hCount.textContent = myPending.length;
+        if (tabBadge) tabBadge.classList.remove('hidden');
+      } else {
+        if (hBadge) hBadge.classList.add('hidden');
+        if (tabBadge) tabBadge.classList.add('hidden');
+      }
+
+      if (pending.length === 0) {
+        container.innerHTML = `
+          <div class="bg-white/80 p-4 rounded-xl text-center text-xs text-stone-400 font-bold border border-amber-100">
+            ✅ لا توجد طلبات تسليم أو قبض عهد معلقة حالياً. جميع العهد مستلمة ومطابقة.
+          </div>
+        `;
+        return;
+      }
+
+      pending.forEach(t => {
+        const isReceiver = t.receiver_id === activeUserId;
+        const isSender = t.sender_id === activeUserId;
+        const item = document.createElement('div');
+        item.className = `p-3.5 rounded-2xl border transition flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${isReceiver ? 'bg-emerald-50 border-emerald-300 ring-2 ring-emerald-400' : 'bg-white border-amber-200'}`;
+        item.innerHTML = `
+          <div class="flex items-start sm:items-center gap-3">
+            <span class="text-2xl">${isReceiver ? '🎁' : '⏳'}</span>
+            <div>
+              <div class="flex items-center gap-2 mb-1">
+                <span class="font-mono text-[10px] text-stone-400 font-bold">${t.transfer_number}</span>
+                <span class="bg-amber-100 text-amber-900 font-bold px-2 py-0.5 rounded-md text-[10px]">بانتظار الاستلام والقبض</span>
+              </div>
+              <p class="text-xs font-bold text-stone-800">
+                تسليم عهدة من <strong class="text-emerald-800">${t.sender_name}</strong> إلى <strong class="text-blue-800">${t.receiver_name}</strong>
+              </p>
+              <p class="text-[11px] text-stone-500 mt-0.5">${t.notes || 'تسليم عهدة نقدية'}</p>
+            </div>
+          </div>
+
+          <div class="flex items-center justify-between sm:justify-end gap-3 pt-2 sm:pt-0 border-t sm:border-t-0 border-stone-200/60">
+            <div class="text-left">
+              <span class="text-base font-black font-mono text-emerald-900">${Number(t.amount).toLocaleString()} ريال</span>
+            </div>
+
+            <div class="flex items-center gap-1.5">
+              ${isReceiver ? `
+                <button onclick="confirmCustodyReceipt('${t.id}', '${t.sender_name}', ${t.amount})" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3.5 py-1.5 rounded-xl font-bold text-xs shadow-sm transition cursor-pointer flex items-center gap-1">
+                  <span>✅ تأكيد الاستلام</span>
+                </button>
+              ` : `
+                <span class="text-[11px] text-stone-400 italic">بانتظار تأكيد ${t.receiver_name}</span>
+              `}
+              ${(isReceiver || isSender) ? `
+                <button onclick="rejectCustodyReceipt('${t.id}')" class="bg-stone-100 hover:bg-rose-50 text-stone-500 hover:text-rose-600 px-2 py-1.5 rounded-xl font-bold text-xs transition cursor-pointer" title="إلغاء الطلب">
+                  إلغاء
+                </button>
+              ` : ''}
+            </div>
+          </div>
+        `;
+        container.appendChild(item);
+      });
+    }
+
+    function renderTransfersHistory(transfers) {
+      const tbody = document.getElementById('transfers-table-body');
+      if (!tbody) return;
+      tbody.innerHTML = '';
+
+      if (transfers.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="8" class="p-6 text-center text-stone-400 font-bold">لا توجد عمليات تحويل عهد مسجلة حتى الآن</td></tr>`;
+        return;
+      }
+
+      transfers.forEach(t => {
+        const tr = document.createElement('tr');
+        tr.className = "hover:bg-stone-50/60 transition";
+        const isConfirmed = t.status === 'CONFIRMED';
+        const isPending = t.status === 'PENDING';
+        tr.innerHTML = `
+          <td class="p-3 font-mono font-bold text-stone-600 whitespace-nowrap">${t.transfer_number}</td>
+          <td class="p-3 font-semibold text-stone-600 whitespace-nowrap">${t.created_date || '-'}</td>
+          <td class="p-3 font-bold text-emerald-800">${t.sender_name}</td>
+          <td class="p-3 font-bold text-blue-800">${t.receiver_name}</td>
+          <td class="p-3 text-left font-mono font-black text-stone-900">${Number(t.amount).toFixed(2)}</td>
+          <td class="p-3 text-stone-600 max-w-xs truncate">${t.notes || '-'}</td>
+          <td class="p-3 text-center">
+            <span class="inline-block px-2.5 py-0.5 rounded-full font-bold text-[10px] ${isConfirmed ? 'bg-emerald-100 text-emerald-800' : isPending ? 'bg-amber-100 text-amber-800 animate-pulse' : 'bg-rose-100 text-rose-800'}">
+              ${isConfirmed ? 'تم الاستلام' : isPending ? 'بانتظار الاستلام' : 'ملغي'}
+            </span>
+          </td>
+          <td class="p-3 text-center">
+            ${isPending && t.receiver_id === activeUserId ? `
+              <button onclick="confirmCustodyReceipt('${t.id}', '${t.sender_name}', ${t.amount})" class="bg-emerald-600 hover:bg-emerald-500 text-white px-2 py-1 rounded-lg font-bold text-[11px] transition">
+                استلام
+              </button>
+            ` : '-'}
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    // Modal Triggers for Wallets
+    function openTransferModal(senderId) {
+      populateWalletSelects(allUsers);
+      const sSelect = document.getElementById('transfer-sender');
+      if (senderId && sSelect) {
+        sSelect.value = senderId;
+        onTransferSenderChange();
+      }
+      document.getElementById('transfer-modal').classList.remove('hidden');
+      document.getElementById('transfer-amount').focus();
+    }
+    function closeTransferModal() {
+      document.getElementById('transfer-modal').classList.add('hidden');
+      document.getElementById('transfer-form').reset();
+    }
+
+    function openDepositModal(userId) {
+      populateWalletSelects(allUsers);
+      const dSelect = document.getElementById('deposit-user');
+      if (userId && dSelect) {
+        dSelect.value = userId;
+      }
+      document.getElementById('deposit-modal').classList.remove('hidden');
+      document.getElementById('deposit-amount').focus();
+    }
+    function closeDepositModal() {
+      document.getElementById('deposit-modal').classList.add('hidden');
+      document.getElementById('deposit-form').reset();
+    }
+
+    async function submitTransfer(e) {
+      e.preventDefault();
+      const btn = document.getElementById('submit-transfer-btn');
+      btn.disabled = true;
+      btn.textContent = 'جاري إرسال الطلب...';
+
+      try {
+        const payload = {
+          senderId: document.getElementById('transfer-sender').value,
+          receiverId: document.getElementById('transfer-receiver').value,
+          amount: Number(document.getElementById('transfer-amount').value),
+          notes: document.getElementById('transfer-notes').value
+        };
+
+        const res = await fetch('/api/wallets/transfer', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'حدث خطأ أثناء إرسال طلب العهدة');
+
+        closeTransferModal();
+        await loadWalletsData();
+        alert(data.message || 'تم إرسال طلب العهدة بنجاح!');
+      } catch (err) {
+        alert(err.message);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'إرسال طلب التسليم والقبض';
+      }
+    }
+
+    async function submitDeposit(e) {
+      e.preventDefault();
+      const btn = document.getElementById('submit-deposit-btn');
+      btn.disabled = true;
+      btn.textContent = 'جاري الإيداع...';
+
+      try {
+        const payload = {
+          userId: document.getElementById('deposit-user').value,
+          amount: Number(document.getElementById('deposit-amount').value),
+          notes: document.getElementById('deposit-notes').value
+        };
+
+        const res = await fetch('/api/wallets/deposit', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'فشل في إيداع المبلغ');
+
+        closeDepositModal();
+        await loadWalletsData();
+        alert(data.message || 'تم تغذية المحفظة بنجاح!');
+      } catch (err) {
+        alert(err.message);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'إيداع وتحديث المحفظة';
+      }
+    }
+
+    async function confirmCustodyReceipt(transferId, senderName, amount) {
+      if (!confirm(`هل تؤكد قبض واستلام مبلغ ${amount} ريال من ${senderName}؟ سيتم إضافة المبلغ لمحفظتك وخصمه منه فوراً.`)) return;
+
+      try {
+        const res = await fetch(`/api/wallets/transfers/${transferId}/confirm`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ receiverId: activeUserId })
+        });
+
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'فشل في تأكيد الاستلام');
+
+        await loadWalletsData();
+        alert(data.message || 'تم تأكيد الاستلام بنجاح!');
+      } catch (err) {
+        alert(err.message);
+      }
+    }
+
+    async function rejectCustodyReceipt(transferId) {
+      if (!confirm('هل أنت متأكد من إلغاء / رفض هذا الطلب؟')) return;
+
+      try {
+        const res = await fetch(`/api/wallets/transfers/${transferId}/reject`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId: activeUserId })
+        });
+
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'فشل في إلغاء الطلب');
+
+        await loadWalletsData();
+      } catch (err) {
+        alert(err.message);
+      }
+    }
+
+    // Initial load
+    checkAuthOnLoad();
+  </script>
+</body>
+</html>
