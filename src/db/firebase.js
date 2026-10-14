@@ -1,5 +1,5 @@
 require('dotenv').config();
-const { initializeApp, cert } = require('firebase-admin/app');
+const { initializeApp, cert, getApps } = require('firebase-admin/app');
 const { getFirestore } = require('firebase-admin/firestore');
 const path = require('path');
 const fs = require('fs');
@@ -7,42 +7,71 @@ const fs = require('fs');
 const serviceAccountPath = path.join(__dirname, '..', '..', 'serviceAccountKey.json');
 
 let app = null;
-let db = null;
+let rawDb = null;
 
 try {
-  if (fs.existsSync(serviceAccountPath)) {
-    const serviceAccount = require(serviceAccountPath);
-    app = initializeApp({
+  // 1. محاولة القراءة من متغير البيئة FIREBASE_SERVICE_ACCOUNT (المفضل في Vercel)
+  if (process.env.FIREBASE_SERVICE_ACCOUNT) {
+    const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+    app = getApps().length ? getApps()[0] : initializeApp({
       credential: cert(serviceAccount)
     });
-    db = getFirestore();
-  } else if (process.env.FIREBASE_PROJECT_ID && process.env.FIREBASE_CLIENT_EMAIL && process.env.FIREBASE_PRIVATE_KEY) {
-    app = initializeApp({
+    rawDb = getFirestore();
+  }
+  // 2. محاولة القراءة من Base64 (لتفادي أي مشاكل في أسطر المفتاح على Vercel)
+  else if (process.env.FIREBASE_SERVICE_ACCOUNT_BASE64) {
+    const decoded = Buffer.from(process.env.FIREBASE_SERVICE_ACCOUNT_BASE64, 'base64').toString('utf8');
+    const serviceAccount = JSON.parse(decoded);
+    app = getApps().length ? getApps()[0] : initializeApp({
+      credential: cert(serviceAccount)
+    });
+    rawDb = getFirestore();
+  }
+  // 3. محاولة القراءة من ملف serviceAccountKey.json المحلي
+  else if (fs.existsSync(serviceAccountPath)) {
+    const serviceAccount = require(serviceAccountPath);
+    app = getApps().length ? getApps()[0] : initializeApp({
+      credential: cert(serviceAccount)
+    });
+    rawDb = getFirestore();
+  }
+  // 4. محاولة القراءة من متغيرات البيئة المنفصلة
+  else if (process.env.FIREBASE_PROJECT_ID && process.env.FIREBASE_CLIENT_EMAIL && process.env.FIREBASE_PRIVATE_KEY) {
+    app = getApps().length ? getApps()[0] : initializeApp({
       credential: cert({
         projectId: process.env.FIREBASE_PROJECT_ID,
         clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
         privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'),
       })
     });
-    db = getFirestore();
+    rawDb = getFirestore();
   }
 } catch (error) {
   console.error('تحذير أثناء تهيئة Firebase:', error.message);
 }
 
+// استخدام Proxy لحماية العمليات وتوضيح الخطأ عند غياب المفتاح
+const db = new Proxy({}, {
+  get(target, prop) {
+    if (!rawDb) {
+      throw new Error('❌ قاعدة بيانات Firebase غير مهيأة! يرجى إضافة متغير البيئة FIREBASE_SERVICE_ACCOUNT في إعدادات Vercel.');
+    }
+    const val = rawDb[prop];
+    return typeof val === 'function' ? val.bind(rawDb) : val;
+  }
+});
+
 /**
  * فحص الاتصال بقاعدة بيانات Cloud Firestore
  */
 async function testFirebaseConnection() {
-  if (!db) {
-    console.error('❌ لم يتم العثور على ملف serviceAccountKey.json أو متغيرات بيئة Firebase.');
-    console.error('   يرجى وضع ملف serviceAccountKey.json في مجلد المشروع الرئيسي.');
+  if (!rawDb) {
+    console.error('❌ لم يتم العثور على ملف serviceAccountKey.json أو متغيرات بيئة Firebase في Vercel.');
     return false;
   }
 
   try {
-    // محاولة قراءة خفيفة لفحص الاتصال
-    await db.collection('_health_check').limit(1).get();
+    await rawDb.collection('_health_check').limit(1).get();
     console.log('✅ تم الاتصال بنجاح بقاعدة بيانات Firebase Cloud Firestore!');
     return true;
   } catch (err) {
@@ -55,5 +84,6 @@ async function testFirebaseConnection() {
 module.exports = {
   app,
   db,
+  rawDb,
   testFirebaseConnection,
 };

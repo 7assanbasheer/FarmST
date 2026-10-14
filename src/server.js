@@ -239,6 +239,10 @@ app.get('/api/wallets/transactions/:userId', async (req, res) => {
 });
 
 // تشغيل الخادم
-app.listen(PORT, () => {
-  console.log(`🌾 خادم نظام المزرعة السحابي (Firebase) يعمل بنجاح على: http://localhost:${PORT}`);
-});
+if (require.main === module || !process.env.VERCEL) {
+  app.listen(PORT, () => {
+    console.log(`🌾 خادم نظام المزرعة السحابي (Firebase) يعمل بنجاح على: http://localhost:${PORT}`);
+  });
+}
+
+module.exports = app;
