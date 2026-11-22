@@ -20,7 +20,9 @@ const expenseService = {
       paymentMethod = 'cash',
       recipient = '',
       invoiceRef = '',
-      notes = ''
+      notes = '',
+      receipt_image = '',
+      receiptImage = ''
     } = data;
 
     const numAmount = Number(amount);
@@ -47,6 +49,7 @@ const expenseService = {
         recipient: recipient || '',
         invoice_ref: invoiceRef || '',
         notes: notes || '',
+        receipt_image: receipt_image || receiptImage || '',
         created_at: FieldValue.serverTimestamp()
       };
 

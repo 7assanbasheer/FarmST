@@ -11,7 +11,8 @@ const walletService = {
   defaultUsers: [
     { id: 'user_mohammed', username: 'mohammed', name: 'محمد', password: '123', role: 'مشرف / مسؤول عهدة', initial_balance: 0 },
     { id: 'user_ali', username: 'ali', name: 'علي', password: '123', role: 'مشرف / مسؤول عهدة', initial_balance: 0 },
-    { id: 'user_hussein', username: 'hussein', name: 'حسين', password: '123', role: 'مشرف / مسؤول عهدة', initial_balance: 0 }
+    { id: 'user_hussein', username: 'hussein', name: 'حسين', password: '123', role: 'مشرف / مسؤول عهدة', initial_balance: 0 },
+    { id: 'user_abdulmalik', username: 'abdulmalik', name: 'عبدالملك', password: '123', role: 'مزارع', initial_balance: 0 }
   ],
 
   /**
@@ -94,8 +95,8 @@ const walletService = {
         wallet_balance: Number(doc.data().wallet_balance || 0)
       });
     });
-    // ترتيب ثابت: محمد، علي، حسين
-    const order = ['user_mohammed', 'user_ali', 'user_hussein'];
+    // ترتيب ثابت: محمد، علي، حسين، عبدالملك
+    const order = ['user_mohammed', 'user_ali', 'user_hussein', 'user_abdulmalik'];
     return users.sort((a, b) => order.indexOf(a.id) - order.indexOf(b.id));
   },
 

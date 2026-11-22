@@ -105,7 +105,7 @@ async function seedFirebase() {
   console.log('⚙️ إعداد وثيقة بيانات المزرعة...');
   const settingsRef = db.collection('settings').doc('farm_profile');
   batch.set(settingsRef, {
-    farm_name: 'مزرعة الخير النموذجية',
+    farm_name: 'مزرعة ابو خليفه',
     owner_name: 'إدارة المزرعة',
     phone: '',
     currency: 'ريال',

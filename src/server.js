@@ -29,12 +29,30 @@ app.get('/api/items', async (req, res) => {
   }
 });
 
+app.post('/api/items', async (req, res) => {
+  try {
+    const result = await itemsService.addItem(req.body);
+    res.json({ success: true, item: result, message: 'تمت إضافة الصنف الجديد بنجاح!' });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
 app.get('/api/expense-categories', async (req, res) => {
   try {
     const categories = await itemsService.getExpenseCategories();
     res.json(categories);
   } catch (error) {
     res.status(500).json({ error: error.message });
+  }
+});
+
+app.post('/api/expense-categories', async (req, res) => {
+  try {
+    const result = await itemsService.addExpenseCategory(req.body);
+    res.json({ success: true, category: result, message: 'تمت إضافة تصنيف المصروف الجديد بنجاح!' });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
   }
 });
 
@@ -133,6 +151,15 @@ app.post('/api/sales', async (req, res) => {
   try {
     const result = await salesService.createSalesInvoice(req.body);
     res.json({ success: true, ...result, message: 'تم إصدار فاتورة البيع وخصم المخزون بنجاح!' });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+app.put('/api/sales/:id', async (req, res) => {
+  try {
+    const result = await salesService.updateSalesInvoice(req.params.id, req.body);
+    res.json(result);
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
